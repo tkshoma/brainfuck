@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainfuck Tester</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #1e1e1e; color: #d4d4d4; height: 100vh; box-sizing: border-box; }
+        .container { display: flex; width: 100%; height: calc(100% - 40px); gap: 20px; }
+        .left-pane { flex: 1; display: flex; flex-direction: column; }
+        .right-pane { width: 110px; flex-shrink: 0; display: flex; flex-direction: column; background: #252526; padding: 15px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .editor-container { position: relative; background-color: #1e1e1e; border: 1px solid #444; border-radius: 4px; display: flex; flex-direction: column; }
+        .editor-container:focus-within { border-color: #007acc; }
+        #code-container { flex: 5; margin-bottom: 10px; }
+        #sub-code-container { flex: 1; }
+        .highlight-layer, .code-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; font-family: monospace; font-size: 18px; line-height: 1.5; margin: 0; border: none; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+        .highlight-layer { color: #d4d4d4; pointer-events: none; }
+        .code-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; resize: none; outline: none; }
+        #sub-code-container .highlight-layer, #sub-code-container .code-textarea { font-size: 16px; padding: 10px 15px; }
+        #input-data { flex: 1; resize: none; padding: 10px 15px; font-family: monospace; font-size: 16px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; }
+        #input-data:focus { outline: none; border-color: #007acc; }
+        .middle-controls { display: flex; gap: 20px; flex: 1; margin-bottom: 15px; }
+        .middle-box { flex: 1; display: flex; flex-direction: column; }
+        .bottom-controls { display: flex; gap: 20px; height: 100px; flex-shrink: 0; }
+        .button-group { flex: 1; display: flex; gap: 15px; }
+        button { flex: 1; font-size: 20px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; }
+        button:hover { background-color: #005f9e; }
+        button.sub-btn { background-color: #0f8f62; }
+        button.sub-btn:hover { background-color: #0b6b49; }
+        button.reset-scroll-btn { flex: none; font-size: 11px; font-weight: normal; padding: 4px 8px; background-color: #444; color: #d4d4d4; border-radius: 3px; }
+        button.reset-scroll-btn:hover { background-color: #555; }
+        .output-wrapper { flex: 1; display: flex; flex-direction: column; }
+        .output-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+        .output-header h3 { margin: 0; }
+        .stats { font-size: 12px; color: #888; font-family: monospace; }
+        .output-area { font-family: monospace; flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; }
+        .memory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; }
+        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: monospace; border-radius: 2px; }
+        .memory-cell.active { background-color: #007acc; border-color: #00a8ff; color: white; }
+        .cell-index { color: #888; font-size: 10px; }
+        .memory-cell.active .cell-index { color: #cce4f7; }
+        .cell-value { font-size: 14px; font-weight: bold; }
+        h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; color: #bbb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-pane">
+            <h3>Code</h3>
+            <div id="code-container" class="editor-container">
+                <div id="code-highlight" class="highlight-layer"></div>
+                <textarea id="code" class="code-textarea" spellcheck="false" placeholder="ここにメインのコードを書く..."></textarea>
+            </div>
+            
+            <div class="middle-controls">
+                <div class="middle-box">
+                    <h3>追加実行</h3>
+                    <div id="sub-code-container" class="editor-container">
+                        <div id="sub-code-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code" class="code-textarea" spellcheck="false" placeholder="追加のコードを書く..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box">
+                    <h3>Input</h3>
+                    <textarea id="input-data" spellcheck="false" placeholder="入力データを書く..."></textarea>
+                </div>
+            </div>
+            
+            <div class="bottom-controls">
+                <div class="button-group">
+                    <button onclick="runMain()">RUN</button>
+                    <button class="sub-btn" onclick="runSub()">追加実行</button>
+                </div>
+                
+                <div class="output-wrapper">
+                    <div class="output-header">
+                        <h3>Output</h3>
+                        <span id="exec-stats" class="stats">Ptr: 0 | Steps: 0</span>
+                    </div>
+                    <div id="output" class="output-area"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-pane">
+            <div class="memory-header">
+                <div style="font-size: 14px; color: #888; font-weight: bold;">メモリ</div>
+                <button class="reset-scroll-btn" onclick="resetMemoryScroll()">初期位置</button>
+            </div>
+            <div id="memory" class="memory-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- シンタックスハイライト関連 ---
+        const bracketColors = ['#4ea8de', '#40c463', '#d48844', '#dcdcaa', '#c586c0'];
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function highlightBrackets(text) {
+            const unmatched = new Set();
+            const stack = [];
+            for (let i = 0; i < text.length; i++) {
+                if (text[i] === '[') stack.push(i);
+                else if (text[i] === ']') {
+                    if (stack.length === 0) unmatched.add(i);
+                    else stack.pop();
+                }
+            }
+            for (let index of stack) unmatched.add(index);
+
+            let result = '';
+            let depth = 0;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '[') {
+                    if (unmatched.has(i)) result += `<span style="color: #ff4d4d; font-weight: bold; background-color: rgba(255,0,0,0.2);">[</span>`;
+                    else {
+                        result += `<span style="color: ${bracketColors[depth % bracketColors.length]}; font-weight: bold;">[</span>`;
+                        depth++;
+                    }
+                } else if (char === ']') {
+                    if (unmatched.has(i)) result += `<span style="color: #ff4d4d; font-weight: bold; background-color: rgba(255,0,0,0.2);">]</span>`;
+                    else {
+                        depth = Math.max(0, depth - 1);
+                        result += `<span style="color: ${bracketColors[depth % bracketColors.length]}; font-weight: bold;">]</span>`;
+                    }
+                } else if (char === '<' || char === '>') {
+                    // '<' と '>' にライトブルーのハイライトを適用
+                    result += `<span style="color: #00a8ff; font-weight: bold;">${escapeHtml(char)}</span>`;
+                } else {
+                    result += escapeHtml(char);
+                }
+            }
+            if (text.endsWith('\n')) result += ' ';
+            return result;
+        }
+
+        function setupEditor(id) {
+            const textarea = document.getElementById(id);
+            const highlightDiv = document.getElementById(id + '-highlight');
+            textarea.addEventListener('input', () => highlightDiv.innerHTML = highlightBrackets(textarea.value));
+            textarea.addEventListener('scroll', () => {
+                highlightDiv.scrollTop = textarea.scrollTop;
+                highlightDiv.scrollLeft = textarea.scrollLeft;
+            });
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === '[') {
+                    e.preventDefault();
+                    const start = this.selectionStart, end = this.selectionEnd, val = this.value;
+                    this.value = val.substring(0, start) + '[]' + val.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 1;
+                    highlightDiv.innerHTML = highlightBrackets(this.value);
+                }
+            });
+            highlightDiv.innerHTML = highlightBrackets(textarea.value);
+        }
+
+        // --- Brainfuck インタプリタ コアロジック ---
+        
+        let memory = {};
+        let ptr = 0;
+        let lastPtr = 0;
+        let inputPtr = 0;
+        let totalSteps = 0;
+
+        function getMem(p) { return memory[p] || 0; }
+        function setMem(p, v) { memory[p] = v & 255; }
+
+        function initMemoryDOM() {
+            const memoryDiv = document.getElementById('memory');
+            let htmlString = '';
+            for (let i = -100; i < 10000; i++) {
+                const activeClass = i === 0 ? ' active' : '';
+                htmlString += `
+                    <div id="cell-${i}" class="memory-cell${activeClass}">
+                        <span class="cell-index">[${i}]</span>
+                        <span class="cell-value">0</span>
+                    </div>`;
+            }
+            memoryDiv.innerHTML = htmlString;
+        }
+
+        function resetMemoryScroll() {
+            const memoryDiv = document.getElementById('memory');
+            const cellZero = document.getElementById('cell-0');
+            if (cellZero) memoryDiv.scrollTop = cellZero.offsetTop - 10;
+        }
+
+        function parseBrackets(code) {
+            let map = {};
+            let stack = [];
+            for (let i = 0; i < code.length; i++) {
+                if (code[i] === '[') stack.push(i);
+                else if (code[i] === ']') {
+                    if (stack.length === 0) throw new Error("構文エラー: 対応する '[' がありません");
+                    let start = stack.pop();
+                    map[start] = i;
+                    map[i] = start;
+                }
+            }
+            if (stack.length > 0) throw new Error("構文エラー: 対応する ']' がありません");
+            return map;
+        }
+
+        function executeBrainfuck(rawCode) {
+            let code = "";
+            for (let char of rawCode) {
+                if ("><+-.,[]".includes(char)) code += char;
+            }
+
+            let jumpMap;
+            try {
+                jumpMap = parseBrackets(code);
+            } catch (e) {
+                return "\n" + e.message;
+            }
+
+            let pc = 0;
+            let outputText = "";
+            let steps = 0;
+            const MAX_STEPS = 50000000; 
+            
+            const inputData = document.getElementById('input-data').value + '\n';
+
+            while (pc < code.length) {
+                if (steps++ > MAX_STEPS) {
+                    outputText += "\n[Error] 最大実行ステップ数を超過しました。無限ループの可能性があります。";
+                    break;
+                }
+
+                let cmd = code[pc];
+                switch (cmd) {
+                    case '>': ptr++; break;
+                    case '<': ptr--; break;
+                    case '+': setMem(ptr, getMem(ptr) + 1); break;
+                    case '-': setMem(ptr, getMem(ptr) - 1); break;
+                    case '.': 
+                        outputText += String.fromCharCode(getMem(ptr)); 
+                        break;
+                    case ',':
+                        if (inputPtr < inputData.length) {
+                            setMem(ptr, inputData.charCodeAt(inputPtr++));
+                        } else {
+                            setMem(ptr, 255);
+                        }
+                        break;
+                    case '[':
+                        if (getMem(ptr) === 0) pc = jumpMap[pc];
+                        break;
+                    case ']':
+                        if (getMem(ptr) !== 0) pc = jumpMap[pc];
+                        break;
+                }
+                pc++;
+            }
+
+            totalSteps += steps;
+            return outputText;
+        }
+
+        function updateUI(newOutput, isAppend) {
+            const outDiv = document.getElementById('output');
+            if (isAppend) {
+                outDiv.innerText += newOutput;
+            } else {
+                outDiv.innerText = newOutput;
+            }
+            
+            document.getElementById('exec-stats').innerText = `Ptr: ${ptr} | Steps: ${totalSteps}`;
+
+            let oldCell = document.getElementById('cell-' + lastPtr);
+            if (oldCell) oldCell.classList.remove('active');
+
+            let newCell = document.getElementById('cell-' + ptr);
+            if (newCell) {
+                newCell.classList.add('active');
+                newCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            lastPtr = ptr;
+
+            for (let p in memory) {
+                let cell = document.getElementById('cell-' + p);
+                if (cell) {
+                    cell.querySelector('.cell-value').innerText = memory[p];
+                }
+            }
+        }
+
+        function runMain() {
+            memory = {};
+            ptr = 0;
+            inputPtr = 0;
+            totalSteps = 0;
+            
+            document.querySelectorAll('.cell-value').forEach(el => el.innerText = '0');
+            
+            let code = document.getElementById('code').value;
+            let output = executeBrainfuck(code);
+            updateUI(output, false);
+        }
+
+        function runSub() {
+            let code = document.getElementById('sub-code').value;
+            let output = executeBrainfuck(code);
+            updateUI(output, true);
+        }
+
+        window.onload = function() {
+            initMemoryDOM();
+            resetMemoryScroll();
+            setupEditor('code');
+            setupEditor('sub-code');
+        };
+    </script>
+</body>
+</html>
