@@ -22,12 +22,11 @@
         .highlight-layer { color: #d4d4d4; pointer-events: none; }
         .code-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; resize: none; outline: none; }
         
-        #sub-code1-container, #sub-code2-container, #sub-code3-container { flex: 1; }
         #sub-code1-container .highlight-layer, #sub-code1-container .code-textarea,
         #sub-code2-container .highlight-layer, #sub-code2-container .code-textarea,
-        #sub-code3-container .highlight-layer, #sub-code3-container .code-textarea { font-size: 14px; padding: 10px 10px; }
+        #sub-code3-container .highlight-layer, #sub-code3-container .code-textarea { font-size: 18px; padding: 10px 15px; }
         
-        #input-data { flex: 1; resize: none; padding: 10px 10px; font-family: var(--vscode-font); font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; margin: 0; }
+        #input-data { flex: 1; resize: none; padding: 10px 15px; font-family: var(--vscode-font); font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; margin: 0; }
         #input-data:focus { outline: none; border-color: #007acc; }
         
         .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; }
@@ -69,7 +68,10 @@
         .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; }
         .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; }
         .memory-cell.active { background-color: #007acc; border-color: #00a8ff; color: white; }
-        .cell-index { color: #888; font-size: 10px; font-family: var(--vscode-font); }
+        
+        /* 要素番号の色を #888 から #ccc に変更して明るく */
+        .cell-index { color: #ccc; font-size: 10px; font-family: var(--vscode-font); }
+        
         .memory-cell.active .cell-index { color: #cce4f7; }
         .cell-value { font-size: 14px; font-weight: bold; }
     </style>
@@ -345,7 +347,6 @@
                     break;
                 }
 
-                // ポインタが 50000 または -50000 に達した場合に強制終了
                 if (ptr === 50000 || ptr === -50000) {
                     let origPos = codeObjects[pc] ? codeObjects[pc].origIdx + 1 : rawCode.length;
                     outputText += `\n[Error] ポインタが限界値(${ptr})に達したため安全のために強制終了しました。(Codeの純粋命令目: ${pc + 1}番目 / コメント含む全体: ${origPos}文字目)`;
