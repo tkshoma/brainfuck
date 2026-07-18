@@ -59,6 +59,7 @@
         
         .pane-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
         .pane-header h3 { margin: 0; font-size: 16px; color: #bbb; }
+        h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; color: #bbb; }
         .output-header h3 { font-size: 14px; }
         
         .stats { font-size: 12px; color: #888; font-family: var(--vscode-font); }
@@ -71,14 +72,13 @@
         .cell-index { color: #888; font-size: 10px; font-family: var(--vscode-font); }
         .memory-cell.active .cell-index { color: #cce4f7; }
         .cell-value { font-size: 14px; font-weight: bold; }
-        h3 { margin-top: 0; margin-bottom: 8px; font-size: 14px; color: #bbb; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="left-pane">
             <div class="pane-header">
-                <h3 style="font-size: 16px;">Code</h3>
+                <h3>Code</h3>
                 <span id="code-stats" class="stats">Length: 0 | Pos: 0</span>
             </div>
             <div id="code-container" class="editor-container">
@@ -168,7 +168,6 @@
             let targetIdx = -1;
             let matchIdx = -1;
             
-            // カーソルが括弧の右側（直後）にある場合のみターゲットとするように変更
             if (cursorPos > 0 && (text[cursorPos - 1] === '[' || text[cursorPos - 1] === ']')) {
                 targetIdx = cursorPos - 1;
             }
@@ -248,9 +247,21 @@
             });
 
             textarea.addEventListener('keydown', function(e) {
-                if (e.key === '[') {
+                if (e.key === 'Tab') {
                     e.preventDefault();
-                    const start = this.selectionStart, end = this.selectionEnd, val = this.value;
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    const val = this.value;
+                    
+                    this.value = val.substring(0, start) + '    ' + val.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 4;
+                    update();
+                } else if (e.key === '[') {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    const val = this.value;
+                    
                     this.value = val.substring(0, start) + '[]' + val.substring(end);
                     this.selectionStart = this.selectionEnd = start + 1;
                     update();
@@ -334,9 +345,10 @@
                     break;
                 }
 
-                if (ptr === 50000) {
+                // ポインタが 50000 または -50000 に達した場合に強制終了
+                if (ptr === 50000 || ptr === -50000) {
                     let origPos = codeObjects[pc] ? codeObjects[pc].origIdx + 1 : rawCode.length;
-                    outputText += `\n[Error] ポインタが50,000に達したため安全のために強制終了しました。(Codeの純粋命令目: ${pc + 1}番目 / コメント含む全体: ${origPos}文字目)`;
+                    outputText += `\n[Error] ポインタが限界値(${ptr})に達したため安全のために強制終了しました。(Codeの純粋命令目: ${pc + 1}番目 / コメント含む全体: ${origPos}文字目)`;
                     break;
                 }
 
