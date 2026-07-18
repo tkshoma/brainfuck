@@ -33,7 +33,6 @@
         .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; }
         .middle-box { flex: 1; display: flex; flex-direction: column; }
         
-        /* 下部エリアも上部と全く同じ比率(flex:1)とgap(10px)にして幅・X座標を合わせる */
         .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; min-height: 130px; }
         
         .button-group { 
@@ -55,7 +54,6 @@
         button.reset-scroll-btn { flex: none; font-size: 11px; font-weight: normal; padding: 4px 8px; background-color: #444; color: #d4d4d4; border-radius: 3px; min-height: auto; width: auto; height: auto;}
         button.reset-scroll-btn:hover { background-color: #555; }
         
-        /* InputとOutputも上部の要素と同じflex:1にして幅を完全一致させる */
         .input-wrapper { flex: 1; display: flex; flex-direction: column; }
         .output-wrapper { flex: 1; display: flex; flex-direction: column; } 
         
@@ -169,27 +167,25 @@
 
             let targetIdx = -1;
             let matchIdx = -1;
-            if (cursorPos !== -1) {
-                if (cursorPos < text.length && (text[cursorPos] === '[' || text[cursorPos] === ']')) {
-                    targetIdx = cursorPos;
-                } else if (cursorPos > 0 && (text[cursorPos - 1] === '[' || text[cursorPos - 1] === ']')) {
-                    targetIdx = cursorPos - 1;
-                }
+            
+            // カーソルが括弧の右側（直後）にある場合のみターゲットとするように変更
+            if (cursorPos > 0 && (text[cursorPos - 1] === '[' || text[cursorPos - 1] === ']')) {
+                targetIdx = cursorPos - 1;
+            }
 
-                if (targetIdx !== -1 && !unmatched.has(targetIdx)) {
-                    let d = 0;
-                    if (text[targetIdx] === '[') {
-                        for (let i = targetIdx; i < text.length; i++) {
-                            if (text[i] === '[') d++;
-                            else if (text[i] === ']') d--;
-                            if (d === 0) { matchIdx = i; break; }
-                        }
-                    } else {
-                        for (let i = targetIdx; i >= 0; i--) {
-                            if (text[i] === ']') d++;
-                            else if (text[i] === '[') d--;
-                            if (d === 0) { matchIdx = i; break; }
-                        }
+            if (targetIdx !== -1 && !unmatched.has(targetIdx)) {
+                let d = 0;
+                if (text[targetIdx] === '[') {
+                    for (let i = targetIdx; i < text.length; i++) {
+                        if (text[i] === '[') d++;
+                        else if (text[i] === ']') d--;
+                        if (d === 0) { matchIdx = i; break; }
+                    }
+                } else {
+                    for (let i = targetIdx; i >= 0; i--) {
+                        if (text[i] === ']') d++;
+                        else if (text[i] === '[') d--;
+                        if (d === 0) { matchIdx = i; break; }
                     }
                 }
             }
