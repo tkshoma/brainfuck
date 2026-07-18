@@ -5,49 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainfuck Tester</title>
     <style>
+        /* VS Code風のフォントを定義 */
+        :root {
+            --vscode-font: Menlo, Monaco, Consolas, "Courier New", monospace;
+        }
+
         body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #1e1e1e; color: #d4d4d4; height: 100vh; box-sizing: border-box; }
         .container { display: flex; width: 100%; height: calc(100% - 40px); gap: 20px; }
         .left-pane { flex: 1; display: flex; flex-direction: column; }
         .right-pane { width: 110px; flex-shrink: 0; display: flex; flex-direction: column; background: #252526; padding: 15px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .editor-container { position: relative; background-color: #1e1e1e; border: 1px solid #444; border-radius: 4px; display: flex; flex-direction: column; }
         .editor-container:focus-within { border-color: #007acc; }
-        #code-container { flex: 5; margin-bottom: 10px; }
-        #sub-code-container { flex: 1; }
-        .highlight-layer, .code-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; font-family: monospace; font-size: 18px; line-height: 1.5; margin: 0; border: none; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+        #code-container { flex: 4; margin-bottom: 10px; }
+        
+        .highlight-layer, .code-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; font-family: var(--vscode-font); font-size: 18px; line-height: 1.5; margin: 0; border: none; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
         .highlight-layer { color: #d4d4d4; pointer-events: none; }
         .code-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; resize: none; outline: none; }
-        #sub-code-container .highlight-layer, #sub-code-container .code-textarea { font-size: 16px; padding: 10px 15px; }
-        #input-data { flex: 1; resize: none; padding: 10px 15px; font-family: monospace; font-size: 16px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; }
+        
+        #sub-code1-container, #sub-code2-container, #sub-code3-container { flex: 1; }
+        #sub-code1-container .highlight-layer, #sub-code1-container .code-textarea,
+        #sub-code2-container .highlight-layer, #sub-code2-container .code-textarea,
+        #sub-code3-container .highlight-layer, #sub-code3-container .code-textarea { font-size: 14px; padding: 10px 10px; }
+        
+        #input-data { flex: 1; resize: none; padding: 10px 10px; font-family: var(--vscode-font); font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; margin: 0; }
         #input-data:focus { outline: none; border-color: #007acc; }
-        .middle-controls { display: flex; gap: 20px; flex: 1; margin-bottom: 15px; }
+        
+        .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; }
         .middle-box { flex: 1; display: flex; flex-direction: column; }
-        .bottom-controls { display: flex; gap: 20px; height: 100px; flex-shrink: 0; }
-        .button-group { flex: 1; display: flex; gap: 15px; }
-        button { flex: 1; font-size: 20px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; }
+        
+        /* 下部エリアも上部と全く同じ比率(flex:1)とgap(10px)にして幅・X座標を合わせる */
+        .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; min-height: 130px; }
+        
+        .button-group { 
+            flex: 1; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 10px; 
+        }
+        
+        button { font-size: 14px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 40px; }
         button:hover { background-color: #005f9e; }
         button.sub-btn { background-color: #0f8f62; }
         button.sub-btn:hover { background-color: #0b6b49; }
-        button.reset-scroll-btn { flex: none; font-size: 11px; font-weight: normal; padding: 4px 8px; background-color: #444; color: #d4d4d4; border-radius: 3px; }
+        button.init-btn { background-color: #b33939; }
+        button.init-btn:hover { background-color: #8b2c2c; }
+        button.norm-btn { background-color: #d48844; }
+        button.norm-btn:hover { background-color: #b36e32; }
+        
+        button.reset-scroll-btn { flex: none; font-size: 11px; font-weight: normal; padding: 4px 8px; background-color: #444; color: #d4d4d4; border-radius: 3px; min-height: auto; width: auto; height: auto;}
         button.reset-scroll-btn:hover { background-color: #555; }
-        .output-wrapper { flex: 1; display: flex; flex-direction: column; }
-        .output-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-        .output-header h3 { margin: 0; }
-        .stats { font-size: 12px; color: #888; font-family: monospace; }
-        .output-area { font-family: monospace; flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; }
+        
+        /* InputとOutputも上部の要素と同じflex:1にして幅を完全一致させる */
+        .input-wrapper { flex: 1; display: flex; flex-direction: column; }
+        .output-wrapper { flex: 1; display: flex; flex-direction: column; } 
+        
+        .pane-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+        .pane-header h3 { margin: 0; font-size: 16px; color: #bbb; }
+        .output-header h3 { font-size: 14px; }
+        
+        .stats { font-size: 12px; color: #888; font-family: var(--vscode-font); }
+        .output-area { font-family: var(--vscode-font); flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; }
+        
         .memory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; }
-        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: monospace; border-radius: 2px; }
+        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; }
         .memory-cell.active { background-color: #007acc; border-color: #00a8ff; color: white; }
-        .cell-index { color: #888; font-size: 10px; }
+        .cell-index { color: #888; font-size: 10px; font-family: var(--vscode-font); }
         .memory-cell.active .cell-index { color: #cce4f7; }
         .cell-value { font-size: 14px; font-weight: bold; }
-        h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; color: #bbb; }
+        h3 { margin-top: 0; margin-bottom: 8px; font-size: 14px; color: #bbb; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="left-pane">
-            <h3>Code</h3>
+            <div class="pane-header">
+                <h3 style="font-size: 16px;">Code</h3>
+                <span id="code-stats" class="stats">Length: 0 | Pos: 0</span>
+            </div>
             <div id="code-container" class="editor-container">
                 <div id="code-highlight" class="highlight-layer"></div>
                 <textarea id="code" class="code-textarea" spellcheck="false" placeholder="ここにメインのコードを書く..."></textarea>
@@ -55,26 +90,47 @@
             
             <div class="middle-controls">
                 <div class="middle-box">
-                    <h3>追加実行</h3>
-                    <div id="sub-code-container" class="editor-container">
-                        <div id="sub-code-highlight" class="highlight-layer"></div>
-                        <textarea id="sub-code" class="code-textarea" spellcheck="false" placeholder="追加のコードを書く..."></textarea>
+                    <h3>追加実行1</h3>
+                    <div id="sub-code1-container" class="editor-container">
+                        <div id="sub-code1-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code1" class="code-textarea" spellcheck="false" placeholder="追加コード1..."></textarea>
                     </div>
                 </div>
                 <div class="middle-box">
-                    <h3>Input</h3>
-                    <textarea id="input-data" spellcheck="false" placeholder="入力データを書く..."></textarea>
+                    <h3>追加実行2</h3>
+                    <div id="sub-code2-container" class="editor-container">
+                        <div id="sub-code2-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code2" class="code-textarea" spellcheck="false" placeholder="追加コード2..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box">
+                    <h3>追加実行3</h3>
+                    <div id="sub-code3-container" class="editor-container">
+                        <div id="sub-code3-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code3" class="code-textarea" spellcheck="false" placeholder="追加コード3..."></textarea>
+                    </div>
                 </div>
             </div>
             
             <div class="bottom-controls">
                 <div class="button-group">
+                    <button class="sub-btn" onclick="runSub(1)">追加実行1</button>
+                    <button class="sub-btn" onclick="runSub(2)">追加実行2</button>
+                    <button class="sub-btn" onclick="runSub(3)">追加実行3</button>
                     <button onclick="runMain()">RUN</button>
-                    <button class="sub-btn" onclick="runSub()">追加実行</button>
+                    <button class="norm-btn" onclick="normalizeCode()">正規化</button>
+                    <button class="init-btn" onclick="resetEngine()">初期化</button>
+                </div>
+                
+                <div class="input-wrapper">
+                    <div class="pane-header">
+                        <h3>Input</h3>
+                    </div>
+                    <textarea id="input-data" spellcheck="false" placeholder="入力データ..."></textarea>
                 </div>
                 
                 <div class="output-wrapper">
-                    <div class="output-header">
+                    <div class="pane-header output-header">
                         <h3>Output</h3>
                         <span id="exec-stats" class="stats">Ptr: 0 | Steps: 0</span>
                     </div>
@@ -93,14 +149,13 @@
     </div>
 
     <script>
-        // --- シンタックスハイライト関連 ---
         const bracketColors = ['#4ea8de', '#40c463', '#d48844', '#dcdcaa', '#c586c0'];
 
         function escapeHtml(str) {
             return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
-        function highlightBrackets(text) {
+        function highlightBrackets(text, cursorPos = -1) {
             const unmatched = new Set();
             const stack = [];
             for (let i = 0; i < text.length; i++) {
@@ -112,24 +167,54 @@
             }
             for (let index of stack) unmatched.add(index);
 
+            let targetIdx = -1;
+            let matchIdx = -1;
+            if (cursorPos !== -1) {
+                if (cursorPos < text.length && (text[cursorPos] === '[' || text[cursorPos] === ']')) {
+                    targetIdx = cursorPos;
+                } else if (cursorPos > 0 && (text[cursorPos - 1] === '[' || text[cursorPos - 1] === ']')) {
+                    targetIdx = cursorPos - 1;
+                }
+
+                if (targetIdx !== -1 && !unmatched.has(targetIdx)) {
+                    let d = 0;
+                    if (text[targetIdx] === '[') {
+                        for (let i = targetIdx; i < text.length; i++) {
+                            if (text[i] === '[') d++;
+                            else if (text[i] === ']') d--;
+                            if (d === 0) { matchIdx = i; break; }
+                        }
+                    } else {
+                        for (let i = targetIdx; i >= 0; i--) {
+                            if (text[i] === ']') d++;
+                            else if (text[i] === '[') d--;
+                            if (d === 0) { matchIdx = i; break; }
+                        }
+                    }
+                }
+            }
+
             let result = '';
             let depth = 0;
             for (let i = 0; i < text.length; i++) {
                 const char = text[i];
+                
+                let isGlow = (i === targetIdx || i === matchIdx);
+                let glowCSS = isGlow ? ' outline: 1px solid rgba(255,255,255,0.4); background-color: rgba(255,255,255,0.1); border-radius: 2px;' : '';
+
                 if (char === '[') {
-                    if (unmatched.has(i)) result += `<span style="color: #ff4d4d; font-weight: bold; background-color: rgba(255,0,0,0.2);">[</span>`;
+                    if (unmatched.has(i)) result += `<span style="color: #ff4d4d; font-weight: bold; background-color: rgba(255,0,0,0.2);${glowCSS}">[</span>`;
                     else {
-                        result += `<span style="color: ${bracketColors[depth % bracketColors.length]}; font-weight: bold;">[</span>`;
+                        result += `<span style="color: ${bracketColors[depth % bracketColors.length]}; font-weight: bold;${glowCSS}">[</span>`;
                         depth++;
                     }
                 } else if (char === ']') {
-                    if (unmatched.has(i)) result += `<span style="color: #ff4d4d; font-weight: bold; background-color: rgba(255,0,0,0.2);">]</span>`;
+                    if (unmatched.has(i)) result += `<span style="color: #ff4d4d; font-weight: bold; background-color: rgba(255,0,0,0.2);${glowCSS}">]</span>`;
                     else {
                         depth = Math.max(0, depth - 1);
-                        result += `<span style="color: ${bracketColors[depth % bracketColors.length]}; font-weight: bold;">]</span>`;
+                        result += `<span style="color: ${bracketColors[depth % bracketColors.length]}; font-weight: bold;${glowCSS}">]</span>`;
                     }
                 } else if (char === '<' || char === '>') {
-                    // '<' と '>' にライトブルーのハイライトを適用
                     result += `<span style="color: #00a8ff; font-weight: bold;">${escapeHtml(char)}</span>`;
                 } else {
                     result += escapeHtml(char);
@@ -139,28 +224,46 @@
             return result;
         }
 
+        function updateCodeStats() {
+            const textarea = document.getElementById('code');
+            const stats = document.getElementById('code-stats');
+            if (textarea && stats) {
+                stats.innerText = `Length: ${textarea.value.length} | Pos: ${textarea.selectionStart}`;
+            }
+        }
+
         function setupEditor(id) {
             const textarea = document.getElementById(id);
             const highlightDiv = document.getElementById(id + '-highlight');
-            textarea.addEventListener('input', () => highlightDiv.innerHTML = highlightBrackets(textarea.value));
+            
+            const update = () => {
+                highlightDiv.innerHTML = highlightBrackets(textarea.value, textarea.selectionStart);
+                if (id === 'code') updateCodeStats();
+            };
+
+            textarea.addEventListener('input', update);
+            textarea.addEventListener('keyup', update);
+            textarea.addEventListener('click', update);
+            textarea.addEventListener('focus', update);
+
             textarea.addEventListener('scroll', () => {
                 highlightDiv.scrollTop = textarea.scrollTop;
                 highlightDiv.scrollLeft = textarea.scrollLeft;
             });
+
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === '[') {
                     e.preventDefault();
                     const start = this.selectionStart, end = this.selectionEnd, val = this.value;
                     this.value = val.substring(0, start) + '[]' + val.substring(end);
                     this.selectionStart = this.selectionEnd = start + 1;
-                    highlightDiv.innerHTML = highlightBrackets(this.value);
+                    update();
                 }
             });
-            highlightDiv.innerHTML = highlightBrackets(textarea.value);
+            
+            update(); 
         }
 
-        // --- Brainfuck インタプリタ コアロジック ---
-        
         let memory = {};
         let ptr = 0;
         let lastPtr = 0;
@@ -207,14 +310,17 @@
         }
 
         function executeBrainfuck(rawCode) {
-            let code = "";
-            for (let char of rawCode) {
-                if ("><+-.,[]".includes(char)) code += char;
+            let codeObjects = [];
+            for (let i = 0; i < rawCode.length; i++) {
+                if ("><+-.,[]".includes(rawCode[i])) {
+                    codeObjects.push({ cmd: rawCode[i], origIdx: i });
+                }
             }
 
+            let codeStr = codeObjects.map(o => o.cmd).join('');
             let jumpMap;
             try {
-                jumpMap = parseBrackets(code);
+                jumpMap = parseBrackets(codeStr);
             } catch (e) {
                 return "\n" + e.message;
             }
@@ -222,17 +328,25 @@
             let pc = 0;
             let outputText = "";
             let steps = 0;
-            const MAX_STEPS = 50000000; 
-            
+            const MAX_STEPS = 200000000; 
             const inputData = document.getElementById('input-data').value + '\n';
 
-            while (pc < code.length) {
+            while (pc < codeStr.length) {
                 if (steps++ > MAX_STEPS) {
-                    outputText += "\n[Error] 最大実行ステップ数を超過しました。無限ループの可能性があります。";
+                    let origPos = codeObjects[pc] ? codeObjects[pc].origIdx + 1 : rawCode.length;
+                    outputText += `\n[Error] 実行ステップ数が2億回を超過したため強制終了しました。(Codeの純粋命令目: ${pc + 1}番目 / コメント含む全体: ${origPos}文字目)`;
                     break;
                 }
 
-                let cmd = code[pc];
+                if (ptr === 50000) {
+                    let origPos = codeObjects[pc] ? codeObjects[pc].origIdx + 1 : rawCode.length;
+                    outputText += `\n[Error] ポインタが50,000に達したため安全のために強制終了しました。(Codeの純粋命令目: ${pc + 1}番目 / コメント含む全体: ${origPos}文字目)`;
+                    break;
+                }
+
+                let currentObj = codeObjects[pc];
+                let cmd = currentObj.cmd;
+
                 switch (cmd) {
                     case '>': ptr++; break;
                     case '<': ptr--; break;
@@ -290,7 +404,7 @@
             }
         }
 
-        function runMain() {
+        function resetEngine() {
             memory = {};
             ptr = 0;
             inputPtr = 0;
@@ -298,22 +412,46 @@
             
             document.querySelectorAll('.cell-value').forEach(el => el.innerText = '0');
             
+            let oldCell = document.getElementById('cell-' + lastPtr);
+            if (oldCell) oldCell.classList.remove('active');
+            
+            let zeroCell = document.getElementById('cell-0');
+            if (zeroCell) zeroCell.classList.add('active');
+            lastPtr = 0;
+
+            document.getElementById('output').innerText = '';
+            document.getElementById('exec-stats').innerText = `Ptr: 0 | Steps: 0`;
+            resetMemoryScroll();
+        }
+
+        function runMain() {
+            resetEngine();
             let code = document.getElementById('code').value;
             let output = executeBrainfuck(code);
             updateUI(output, false);
         }
 
-        function runSub() {
-            let code = document.getElementById('sub-code').value;
+        function runSub(num) {
+            let code = document.getElementById('sub-code' + num).value;
             let output = executeBrainfuck(code);
             updateUI(output, true);
+        }
+
+        function normalizeCode() {
+            let rawCode = document.getElementById('code').value;
+            let pureCode = rawCode.replace(/[^><+\-.,\[\]]/g, '');
+            document.getElementById('output').innerText = pureCode;
+            document.getElementById('exec-stats').innerText = `正規化完了 (長さ: ${pureCode.length}文字)`;
         }
 
         window.onload = function() {
             initMemoryDOM();
             resetMemoryScroll();
             setupEditor('code');
-            setupEditor('sub-code');
+            setupEditor('sub-code1');
+            setupEditor('sub-code2');
+            setupEditor('sub-code3');
+            updateCodeStats(); 
         };
     </script>
 </body>
