@@ -12,9 +12,12 @@
 
         body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #1e1e1e; color: #d4d4d4; height: 100vh; box-sizing: border-box; }
         .container { display: flex; width: 100%; height: calc(100% - 40px); gap: 20px; }
-        .left-pane { flex: 1; display: flex; flex-direction: column; }
-        .right-pane { width: 110px; flex-shrink: 0; display: flex; flex-direction: column; background: #252526; padding: 15px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .editor-container { position: relative; background-color: #1e1e1e; border: 1px solid #444; border-radius: 4px; display: flex; flex-direction: column; }
+        .left-pane { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        
+        /* フォームが入るため右ペインを 110px -> 120px に拡張 */
+        .right-pane { width: 120px; flex-shrink: 0; display: flex; flex-direction: column; background: #252526; padding: 15px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        
+        .editor-container { position: relative; background-color: #1e1e1e; border: 1px solid #444; border-radius: 4px; display: flex; flex-direction: column; min-height: 0; }
         .editor-container:focus-within { border-color: #007acc; }
         #code-container { flex: 4; margin-bottom: 10px; }
         
@@ -27,22 +30,16 @@
         #sub-code2-container .highlight-layer, #sub-code2-container .code-textarea,
         #sub-code3-container .highlight-layer, #sub-code3-container .code-textarea { padding: 10px; }
         
-        #input-data { flex: 1; resize: none; padding: 10px 10px; font-family: var(--vscode-font); font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; margin: 0; }
+        #input-data { flex: 1; resize: none; padding: 10px 10px; font-family: var(--vscode-font); font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; margin: 0; min-height: 0; }
         #input-data:focus { outline: none; border-color: #007acc; }
         
-        .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; }
-        .middle-box { flex: 1; display: flex; flex-direction: column; }
+        .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; min-height: 0; }
+        .middle-box { flex: 1; display: flex; flex-direction: column; min-height: 0; }
         
-        .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; min-height: 130px; }
+        .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; height: 150px; }
         
-        .button-group { 
-            flex: 1; 
-            display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
-            gap: 10px; 
-        }
-        
-        button { font-size: 14px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 40px; }
+        .button-group { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; min-height: 0; }
+        button { font-size: 14px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 0; }
         button:hover { background-color: #005f9e; }
         button.sub-btn { background-color: #0f8f62; }
         button.sub-btn:hover { background-color: #0b6b49; }
@@ -51,29 +48,35 @@
         button.norm-btn { background-color: #d48844; }
         button.norm-btn:hover { background-color: #b36e32; }
         
-        button.reset-scroll-btn { flex: none; font-size: 11px; font-weight: normal; padding: 4px 8px; background-color: #444; color: #d4d4d4; border-radius: 3px; min-height: auto; width: auto; height: auto;}
-        button.reset-scroll-btn:hover { background-color: #555; }
+        .input-wrapper { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        .output-wrapper { flex: 1; display: flex; flex-direction: column; min-height: 0; } 
         
-        .input-wrapper { flex: 1; display: flex; flex-direction: column; }
-        .output-wrapper { flex: 1; display: flex; flex-direction: column; } 
-        
-        .pane-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+        .pane-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; flex-shrink: 0; }
         .pane-header h3 { margin: 0; font-size: 16px; color: #bbb; }
-        h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; color: #bbb; }
+        h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; color: #bbb; flex-shrink: 0; }
         .output-header h3 { font-size: 14px; }
         
-        .stats { font-size: 12px; color: #888; font-family: var(--vscode-font); }
-        .output-area { font-family: var(--vscode-font); flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; }
+        .stats { font-size: 12px; color: #888; font-family: var(--vscode-font); flex-shrink: 0; }
+        .output-area { font-family: var(--vscode-font); flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; min-height: 0; }
         
-        .memory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; }
-        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; }
+        /* デバッグフォームのスタイル */
+        .memory-header { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 10px; flex-shrink: 0; }
+        .debug-form { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .debug-form input { width: 100%; box-sizing: border-box; font-family: var(--vscode-font); font-size: 11px; padding: 3px; background: #1e1e1e; border: 1px solid #555; color: #d4d4d4; border-radius: 2px; text-align: center; }
+        .debug-form input:focus { outline: none; border-color: #d48844; }
+        /* input type="number" のスピンボタンを非表示（見た目スッキリ） */
+        .debug-form input::-webkit-outer-spin-button, .debug-form input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .debug-form input[type=number] { -moz-appearance: textfield; }
+        
+        .debug-form button { grid-column: span 2; font-size: 11px; min-height: 22px; padding: 0; background-color: #d48844; }
+        .debug-form button:hover { background-color: #b36e32; }
+
+        .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; min-height: 0; }
+        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; flex-shrink: 0; }
         .memory-cell.active { background-color: #007acc; border-color: #00a8ff; color: white; }
-        
-        /* 要素番号の色を #888 から #ccc に変更して明るく */
         .cell-index { color: #ccc; font-size: 10px; font-family: var(--vscode-font); }
         .memory-cell.active .cell-index { color: #cce4f7; }
-        .cell-value { font-size: 14px; font-weight: bold; }
+        .cell-value { font-size: 14px; font-weight: bold; transition: color 0.3s; }
     </style>
 </head>
 <body>
@@ -141,8 +144,12 @@
 
         <div class="right-pane">
             <div class="memory-header">
-                <div style="font-size: 14px; color: #888; font-weight: bold;">メモリ</div>
-                <button class="reset-scroll-btn" onclick="resetMemoryScroll()">初期位置</button>
+                <div style="font-size: 14px; color: #888; font-weight: bold; text-align: center;">メモリ操作</div>
+                <div class="debug-form">
+                    <input type="number" id="debug-idx" placeholder="番地" title="番地 (例: 0)">
+                    <input type="number" id="debug-val" placeholder="値" title="値 (0-255)">
+                    <button onclick="applyDebugMem()">SET</button>
+                </div>
             </div>
             <div id="memory" class="memory-container"></div>
         </div>
@@ -296,10 +303,37 @@
             memoryDiv.innerHTML = htmlString;
         }
 
+        // 内部的には引き続きスクロールリセット用に使用
         function resetMemoryScroll() {
             const memoryDiv = document.getElementById('memory');
             const cellZero = document.getElementById('cell-0');
             if (cellZero) memoryDiv.scrollTop = cellZero.offsetTop - 10;
+        }
+
+        // --- 新機能: デバッグ用メモリSET処理 ---
+        function applyDebugMem() {
+            let idxStr = document.getElementById('debug-idx').value;
+            let valStr = document.getElementById('debug-val').value;
+            
+            if (idxStr === "" || valStr === "") return;
+
+            let idx = parseInt(idxStr, 10);
+            let val = parseInt(valStr, 10);
+
+            if (!isNaN(idx) && !isNaN(val)) {
+                setMem(idx, val); // 内部的に 0-255 に丸められる
+                
+                let cell = document.getElementById('cell-' + idx);
+                if (cell) {
+                    let valSpan = cell.querySelector('.cell-value');
+                    valSpan.innerText = getMem(idx);
+                    
+                    // 変更箇所へスクロールしてハイライト
+                    cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    valSpan.style.color = '#d48844';
+                    setTimeout(() => { valSpan.style.color = ''; }, 1000);
+                }
+            }
         }
 
         function parseBrackets(code) {
