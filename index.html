@@ -32,10 +32,8 @@
         .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; }
         .middle-box { flex: 1; display: flex; flex-direction: column; transition: all 0.3s; }
         
-        /* 非表示用クラス */
         .hidden { display: none !important; }
         
-        /* 空白を埋めるために下部エリアの高さを 130px から 180px に拡張 */
         .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; min-height: 180px; }
         
         .controls-column { flex: 1.2; display: flex; flex-direction: column; gap: 10px; }
@@ -43,11 +41,9 @@
         .sub-btn-group { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; flex: 1; }
         .main-btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; flex: 1; }
         
-        /* ボタンの縦幅を広げるため min-height を 45px に拡張、文字サイズも16pxへ */
         button { font-size: 16px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 45px; }
         button:hover { background-color: #005f9e; }
         
-        /* 実行1〜6のボタンも少し文字を大きく調整 */
         button.sub-btn { background-color: #0f8f62; font-size: 13px; padding: 0; white-space: nowrap; }
         button.sub-btn:hover { background-color: #0b6b49; }
         
@@ -56,10 +52,10 @@
         button.norm-btn { background-color: #d48844; }
         button.norm-btn:hover { background-color: #b36e32; }
         
-        button.reset-scroll-btn { flex: none; font-size: 11px; font-weight: normal; padding: 4px 8px; background-color: #444; color: #d4d4d4; border-radius: 3px; min-height: auto; width: auto; height: auto;}
+        /* 初期位置ボタンをさらに小さくして1行に収める */
+        button.reset-scroll-btn { flex: none; font-size: 9px; font-weight: normal; padding: 2px 4px; background-color: #444; color: #d4d4d4; border-radius: 3px; min-height: auto; width: auto; height: auto; margin-left: auto; white-space: nowrap; }
         button.reset-scroll-btn:hover { background-color: #555; }
         
-        /* チェックボックス群のデザイン */
         .checkbox-group { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #ccc; }
         .checkbox-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; font-family: var(--vscode-font); }
         .checkbox-group input { margin: 0; cursor: pointer; accent-color: #007acc; width: 14px; height: 14px; }
@@ -75,9 +71,24 @@
         .stats { font-size: 12px; color: #888; font-family: var(--vscode-font); }
         .output-area { font-family: var(--vscode-font); flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; }
         
-        .memory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        /* メモリ操作UI用のスタイル微調整 */
+        .memory-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .memory-header-top { display: flex; justify-content: space-between; align-items: center; gap: 2px; }
+        .memory-inputs { display: flex; gap: 5px; }
+        
+        .memory-inputs input[type="number"]::-webkit-outer-spin-button,
+        .memory-inputs input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .memory-inputs input[type="number"] { -moz-appearance: textfield; }
+        
+        /* 入力欄の文字サイズも縮小 */
+        .memory-inputs input { flex: 1; width: 0; background: #333; color: #d4d4d4; border: 1px solid #555; border-radius: 3px; font-family: var(--vscode-font); font-size: 11px; padding: 2px; text-align: center; }
+        .memory-inputs input:focus { outline: none; border-color: #007acc; }
+        
+        button.set-mem-btn { background-color: #d48844; font-size: 11px; min-height: 22px; padding: 2px 0; border-radius: 3px; }
+        button.set-mem-btn:hover { background-color: #b36e32; }
+
         .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; }
-        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; }
+        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; transition: background-color 0.3s; }
         .memory-cell.active { background-color: #007acc; border-color: #00a8ff; color: white; }
         .cell-index { color: #ccc; font-size: 10px; font-family: var(--vscode-font); }
         .memory-cell.active .cell-index { color: #cce4f7; }
@@ -188,8 +199,16 @@
         <!-- 右側 -->
         <div class="right-pane">
             <div class="memory-header">
-                <div style="font-size: 14px; color: #888; font-weight: bold;">メモリ</div>
-                <button class="reset-scroll-btn" onclick="resetMemoryScroll()">初期位置</button>
+                <div class="memory-header-top">
+                    <!-- 文字サイズを11pxにして1行に収める -->
+                    <div style="font-size: 11px; color: #888; font-weight: bold; white-space: nowrap;">メモリ操作</div>
+                    <button class="reset-scroll-btn" onclick="resetMemoryScroll()">初期位置</button>
+                </div>
+                <div class="memory-inputs">
+                    <input type="number" id="manual-mem-addr" placeholder="要素" title="要素番号(アドレス)">
+                    <input type="number" id="manual-mem-val" placeholder="値" title="値 (0-255)">
+                </div>
+                <button class="set-mem-btn" onclick="setManualMemory()">SET</button>
             </div>
             <div id="memory" class="memory-container"></div>
         </div>
@@ -200,10 +219,10 @@
             '#4ea8de', // 1重: 青系
             '#40c463', // 2重: 緑系
             '#d48844', // 3重: オレンジ系
-            '#d4c428', // 4重: イエロー (明度を下げて落ち着いたマスタード系に)
-            '#ff77cc', // 5重: ピンク (赤みを抑えて明るくマゼンタ寄りに)
-            '#9999ff', // 6重: 青紫色 (明度を上げて見やすく)
-            '#00ffff', // 7重: 非常に明るい水色（シアン）
+            '#d4c428', // 4重: マスタードイエロー
+            '#ff77cc', // 5重: ピンク
+            '#9999ff', // 6重: 青紫色
+            '#00ffff', // 7重: 明るい水色
             '#ffffff'  // 8重: 真っ白
         ];
 
@@ -387,6 +406,37 @@
             const memoryDiv = document.getElementById('memory');
             const cellZero = document.getElementById('cell-0');
             if (cellZero) memoryDiv.scrollTop = cellZero.offsetTop - 10;
+        }
+
+        function setManualMemory() {
+            let addrInput = document.getElementById('manual-mem-addr').value;
+            let valInput = document.getElementById('manual-mem-val').value;
+
+            if (addrInput === '' || valInput === '') return;
+
+            let addr = parseInt(addrInput, 10);
+            let val = parseInt(valInput, 10);
+
+            if (isNaN(addr) || isNaN(val)) return;
+
+            val = val & 255;
+            setMem(addr, val);
+
+            let cell = document.getElementById('cell-' + addr);
+            if (cell) {
+                cell.querySelector('.cell-value').innerText = val;
+                cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                let origBg = cell.style.backgroundColor;
+                cell.style.backgroundColor = '#d48844';
+                setTimeout(() => {
+                    cell.style.backgroundColor = origBg;
+                }, 300);
+            } else {
+                if(addr < -100 || addr >= 10000) {
+                    alert(`要素番号 ${addr} は画面の表示範囲(-100〜9999)外ですが、内部メモリにはセットされました。`);
+                }
+            }
         }
 
         function parseBrackets(code) {
