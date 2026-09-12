@@ -12,12 +12,9 @@
 
         body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #1e1e1e; color: #d4d4d4; height: 100vh; box-sizing: border-box; }
         .container { display: flex; width: 100%; height: calc(100% - 40px); gap: 20px; }
-        .left-pane { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-        
-        /* フォームが入るため右ペインを 110px -> 120px に拡張 */
-        .right-pane { width: 120px; flex-shrink: 0; display: flex; flex-direction: column; background: #252526; padding: 15px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        
-        .editor-container { position: relative; background-color: #1e1e1e; border: 1px solid #444; border-radius: 4px; display: flex; flex-direction: column; min-height: 0; }
+        .left-pane { flex: 1; display: flex; flex-direction: column; }
+        .right-pane { width: 110px; flex-shrink: 0; display: flex; flex-direction: column; background: #252526; padding: 15px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .editor-container { position: relative; background-color: #1e1e1e; border: 1px solid #444; border-radius: 4px; display: flex; flex-direction: column; }
         .editor-container:focus-within { border-color: #007acc; }
         #code-container { flex: 4; margin-bottom: 10px; }
         
@@ -25,62 +22,67 @@
         .highlight-layer { color: #d4d4d4; pointer-events: none; }
         .code-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; resize: none; outline: none; }
         
-        #sub-code1-container, #sub-code2-container, #sub-code3-container { flex: 1; }
-        #sub-code1-container .highlight-layer, #sub-code1-container .code-textarea,
-        #sub-code2-container .highlight-layer, #sub-code2-container .code-textarea,
-        #sub-code3-container .highlight-layer, #sub-code3-container .code-textarea { padding: 10px; }
+        .sub-editor-container { flex: 1; }
+        .sub-editor-container .highlight-layer, 
+        .sub-editor-container .code-textarea { font-size: 18px; padding: 10px 15px; }
         
-        #input-data { flex: 1; resize: none; padding: 10px 10px; font-family: var(--vscode-font); font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; margin: 0; min-height: 0; }
+        #input-data { flex: 1; resize: none; padding: 10px 15px; font-family: var(--vscode-font); font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; margin: 0; }
         #input-data:focus { outline: none; border-color: #007acc; }
         
-        .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; min-height: 0; }
-        .middle-box { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; }
+        .middle-box { flex: 1; display: flex; flex-direction: column; transition: all 0.3s; }
         
-        .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; height: 150px; }
+        /* 非表示用クラス */
+        .hidden { display: none !important; }
         
-        .button-group { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; min-height: 0; }
-        button { font-size: 14px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 0; }
+        .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; min-height: 130px; }
+        
+        .controls-column { flex: 1.2; display: flex; flex-direction: column; gap: 8px; }
+        
+        .sub-btn-group { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; flex: 1; }
+        .main-btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; flex: 1; }
+        
+        button { font-size: 14px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 35px; }
         button:hover { background-color: #005f9e; }
-        button.sub-btn { background-color: #0f8f62; }
+        
+        button.sub-btn { background-color: #0f8f62; font-size: 12px; padding: 0; white-space: nowrap; }
         button.sub-btn:hover { background-color: #0b6b49; }
+        
         button.init-btn { background-color: #b33939; }
         button.init-btn:hover { background-color: #8b2c2c; }
         button.norm-btn { background-color: #d48844; }
         button.norm-btn:hover { background-color: #b36e32; }
         
-        .input-wrapper { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-        .output-wrapper { flex: 1; display: flex; flex-direction: column; min-height: 0; } 
+        button.reset-scroll-btn { flex: none; font-size: 11px; font-weight: normal; padding: 4px 8px; background-color: #444; color: #d4d4d4; border-radius: 3px; min-height: auto; width: auto; height: auto;}
+        button.reset-scroll-btn:hover { background-color: #555; }
         
-        .pane-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; flex-shrink: 0; }
+        .checkbox-group { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; padding: 5px 10px; font-size: 12px; color: #ccc; }
+        .checkbox-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; font-family: var(--vscode-font); }
+        .checkbox-group input { margin: 0; cursor: pointer; accent-color: #007acc; }
+
+        .input-wrapper { flex: 1; display: flex; flex-direction: column; }
+        .output-wrapper { flex: 1; display: flex; flex-direction: column; } 
+        
+        .pane-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
         .pane-header h3 { margin: 0; font-size: 16px; color: #bbb; }
-        h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; color: #bbb; flex-shrink: 0; }
+        h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; color: #bbb; }
         .output-header h3 { font-size: 14px; }
         
-        .stats { font-size: 12px; color: #888; font-family: var(--vscode-font); flex-shrink: 0; }
-        .output-area { font-family: var(--vscode-font); flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; min-height: 0; }
+        .stats { font-size: 12px; color: #888; font-family: var(--vscode-font); }
+        .output-area { font-family: var(--vscode-font); flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; }
         
-        /* デバッグフォームのスタイル */
-        .memory-header { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 10px; flex-shrink: 0; }
-        .debug-form { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-        .debug-form input { width: 100%; box-sizing: border-box; font-family: var(--vscode-font); font-size: 11px; padding: 3px; background: #1e1e1e; border: 1px solid #555; color: #d4d4d4; border-radius: 2px; text-align: center; }
-        .debug-form input:focus { outline: none; border-color: #d48844; }
-        /* input type="number" のスピンボタンを非表示（見た目スッキリ） */
-        .debug-form input::-webkit-outer-spin-button, .debug-form input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .debug-form input[type=number] { -moz-appearance: textfield; }
-        
-        .debug-form button { grid-column: span 2; font-size: 11px; min-height: 22px; padding: 0; background-color: #d48844; }
-        .debug-form button:hover { background-color: #b36e32; }
-
-        .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; min-height: 0; }
-        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; flex-shrink: 0; }
+        .memory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; }
+        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; }
         .memory-cell.active { background-color: #007acc; border-color: #00a8ff; color: white; }
         .cell-index { color: #ccc; font-size: 10px; font-family: var(--vscode-font); }
         .memory-cell.active .cell-index { color: #cce4f7; }
-        .cell-value { font-size: 14px; font-weight: bold; transition: color 0.3s; }
+        .cell-value { font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- 左側 -->
         <div class="left-pane">
             <div class="pane-header">
                 <h3>Code</h3>
@@ -92,37 +94,74 @@
             </div>
             
             <div class="middle-controls">
-                <div class="middle-box">
+                <div class="middle-box" id="box-sub1">
                     <h3>追加実行1</h3>
-                    <div id="sub-code1-container" class="editor-container">
+                    <div id="sub-code1-container" class="editor-container sub-editor-container">
                         <div id="sub-code1-highlight" class="highlight-layer"></div>
                         <textarea id="sub-code1" class="code-textarea" spellcheck="false" placeholder="追加コード1..."></textarea>
                     </div>
                 </div>
-                <div class="middle-box">
+                <div class="middle-box" id="box-sub2">
                     <h3>追加実行2</h3>
-                    <div id="sub-code2-container" class="editor-container">
+                    <div id="sub-code2-container" class="editor-container sub-editor-container">
                         <div id="sub-code2-highlight" class="highlight-layer"></div>
                         <textarea id="sub-code2" class="code-textarea" spellcheck="false" placeholder="追加コード2..."></textarea>
                     </div>
                 </div>
-                <div class="middle-box">
+                <div class="middle-box" id="box-sub3">
                     <h3>追加実行3</h3>
-                    <div id="sub-code3-container" class="editor-container">
+                    <div id="sub-code3-container" class="editor-container sub-editor-container">
                         <div id="sub-code3-highlight" class="highlight-layer"></div>
                         <textarea id="sub-code3" class="code-textarea" spellcheck="false" placeholder="追加コード3..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub4">
+                    <h3>追加実行4</h3>
+                    <div id="sub-code4-container" class="editor-container sub-editor-container">
+                        <div id="sub-code4-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code4" class="code-textarea" spellcheck="false" placeholder="追加コード4..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub5">
+                    <h3>追加実行5</h3>
+                    <div id="sub-code5-container" class="editor-container sub-editor-container">
+                        <div id="sub-code5-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code5" class="code-textarea" spellcheck="false" placeholder="追加コード5..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub6">
+                    <h3>追加実行6</h3>
+                    <div id="sub-code6-container" class="editor-container sub-editor-container">
+                        <div id="sub-code6-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code6" class="code-textarea" spellcheck="false" placeholder="追加コード6..."></textarea>
                     </div>
                 </div>
             </div>
             
             <div class="bottom-controls">
-                <div class="button-group">
-                    <button class="sub-btn" onclick="runSub(1)">追加実行1</button>
-                    <button class="sub-btn" onclick="runSub(2)">追加実行2</button>
-                    <button class="sub-btn" onclick="runSub(3)">追加実行3</button>
-                    <button onclick="runMain()">RUN</button>
-                    <button class="norm-btn" onclick="normalizeCode()">正規化</button>
-                    <button class="init-btn" onclick="resetEngine()">初期化</button>
+                <div class="controls-column">
+                    <div class="sub-btn-group">
+                        <button class="sub-btn" onclick="runSub(1)">実行1</button>
+                        <button class="sub-btn" onclick="runSub(2)">実行2</button>
+                        <button class="sub-btn" onclick="runSub(3)">実行3</button>
+                        <button class="sub-btn" onclick="runSub(4)">実行4</button>
+                        <button class="sub-btn" onclick="runSub(5)">実行5</button>
+                        <button class="sub-btn" onclick="runSub(6)">実行6</button>
+                    </div>
+                    <div class="main-btn-group">
+                        <button onclick="runMain()">RUN</button>
+                        <button class="norm-btn" onclick="normalizeCode()">正規化</button>
+                        <button class="init-btn" onclick="resetEngine()">初期化</button>
+                    </div>
+                    <div class="checkbox-group">
+                        <span style="color: #888;">表示(最大3):</span>
+                        <label><input type="checkbox" id="chk-sub1" class="sub-chk" value="1" checked> 1</label>
+                        <label><input type="checkbox" id="chk-sub2" class="sub-chk" value="2" checked> 2</label>
+                        <label><input type="checkbox" id="chk-sub3" class="sub-chk" value="3" checked> 3</label>
+                        <label><input type="checkbox" id="chk-sub4" class="sub-chk" value="4"> 4</label>
+                        <label><input type="checkbox" id="chk-sub5" class="sub-chk" value="5"> 5</label>
+                        <label><input type="checkbox" id="chk-sub6" class="sub-chk" value="6"> 6</label>
+                    </div>
                 </div>
                 
                 <div class="input-wrapper">
@@ -142,21 +181,28 @@
             </div>
         </div>
 
+        <!-- 右側 -->
         <div class="right-pane">
             <div class="memory-header">
-                <div style="font-size: 14px; color: #888; font-weight: bold; text-align: center;">メモリ操作</div>
-                <div class="debug-form">
-                    <input type="number" id="debug-idx" placeholder="番地" title="番地 (例: 0)">
-                    <input type="number" id="debug-val" placeholder="値" title="値 (0-255)">
-                    <button onclick="applyDebugMem()">SET</button>
-                </div>
+                <div style="font-size: 14px; color: #888; font-weight: bold;">メモリ</div>
+                <button class="reset-scroll-btn" onclick="resetMemoryScroll()">初期位置</button>
             </div>
             <div id="memory" class="memory-container"></div>
         </div>
     </div>
 
     <script>
-        const bracketColors = ['#4ea8de', '#40c463', '#d48844', '#dcdcaa', '#c586c0'];
+        // 指定いただいた色味へ調整（5重と6重を更新）
+        const bracketColors = [
+            '#4ea8de', // 1重: 青系
+            '#40c463', // 2重: 緑系
+            '#d48844', // 3重: オレンジ系
+            '#ffee58', // 4重: レモンイエロー (より鮮やかに)
+            '#ff77cc', // 5重: ピンク (赤みを抑えて明るくマゼンタ寄りに)
+            '#9999ff', // 6重: 青紫色 (明度を上げて見やすく)
+            '#00ffff', // 7重: 非常に明るい水色（シアン）
+            '#ffffff'  // 8重: 真っ白
+        ];
 
         function escapeHtml(str) {
             return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -280,6 +326,37 @@
             update(); 
         }
 
+        function initCheckboxes() {
+            const checkboxes = document.querySelectorAll('.sub-chk');
+            checkboxes.forEach(chk => {
+                chk.addEventListener('change', function() {
+                    const checkedCount = document.querySelectorAll('.sub-chk:checked').length;
+                    
+                    if (checkedCount > 3) {
+                        alert('画面スペースの都合上、同時に表示できる追加実行枠は最大3つまでです。\n（※非表示にしても内容は保持されます）');
+                        this.checked = false;
+                        return;
+                    }
+                    updateVisibility();
+                });
+            });
+            updateVisibility();
+        }
+
+        function updateVisibility() {
+            for (let i = 1; i <= 6; i++) {
+                const chk = document.getElementById('chk-sub' + i);
+                const box = document.getElementById('box-sub' + i);
+                if (chk && box) {
+                    if (chk.checked) {
+                        box.classList.remove('hidden');
+                    } else {
+                        box.classList.add('hidden');
+                    }
+                }
+            }
+        }
+
         let memory = {};
         let ptr = 0;
         let lastPtr = 0;
@@ -303,37 +380,10 @@
             memoryDiv.innerHTML = htmlString;
         }
 
-        // 内部的には引き続きスクロールリセット用に使用
         function resetMemoryScroll() {
             const memoryDiv = document.getElementById('memory');
             const cellZero = document.getElementById('cell-0');
             if (cellZero) memoryDiv.scrollTop = cellZero.offsetTop - 10;
-        }
-
-        // --- 新機能: デバッグ用メモリSET処理 ---
-        function applyDebugMem() {
-            let idxStr = document.getElementById('debug-idx').value;
-            let valStr = document.getElementById('debug-val').value;
-            
-            if (idxStr === "" || valStr === "") return;
-
-            let idx = parseInt(idxStr, 10);
-            let val = parseInt(valStr, 10);
-
-            if (!isNaN(idx) && !isNaN(val)) {
-                setMem(idx, val); // 内部的に 0-255 に丸められる
-                
-                let cell = document.getElementById('cell-' + idx);
-                if (cell) {
-                    let valSpan = cell.querySelector('.cell-value');
-                    valSpan.innerText = getMem(idx);
-                    
-                    // 変更箇所へスクロールしてハイライト
-                    cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    valSpan.style.color = '#d48844';
-                    setTimeout(() => { valSpan.style.color = ''; }, 1000);
-                }
-            }
         }
 
         function parseBrackets(code) {
@@ -491,9 +541,12 @@
             initMemoryDOM();
             resetMemoryScroll();
             setupEditor('code');
-            setupEditor('sub-code1');
-            setupEditor('sub-code2');
-            setupEditor('sub-code3');
+            
+            for (let i = 1; i <= 6; i++) {
+                setupEditor('sub-code' + i);
+            }
+            
+            initCheckboxes();
             updateCodeStats(); 
         };
     </script>
