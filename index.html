@@ -35,17 +35,20 @@
         /* 非表示用クラス */
         .hidden { display: none !important; }
         
-        .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; min-height: 130px; }
+        /* 空白を埋めるために下部エリアの高さを 130px から 180px に拡張 */
+        .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; min-height: 180px; }
         
-        .controls-column { flex: 1.2; display: flex; flex-direction: column; gap: 8px; }
+        .controls-column { flex: 1.2; display: flex; flex-direction: column; gap: 10px; }
         
         .sub-btn-group { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; flex: 1; }
         .main-btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; flex: 1; }
         
-        button { font-size: 14px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 35px; }
+        /* ボタンの縦幅を広げるため min-height を 45px に拡張、文字サイズも16pxへ */
+        button { font-size: 16px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 45px; }
         button:hover { background-color: #005f9e; }
         
-        button.sub-btn { background-color: #0f8f62; font-size: 12px; padding: 0; white-space: nowrap; }
+        /* 実行1〜6のボタンも少し文字を大きく調整 */
+        button.sub-btn { background-color: #0f8f62; font-size: 13px; padding: 0; white-space: nowrap; }
         button.sub-btn:hover { background-color: #0b6b49; }
         
         button.init-btn { background-color: #b33939; }
@@ -56,9 +59,10 @@
         button.reset-scroll-btn { flex: none; font-size: 11px; font-weight: normal; padding: 4px 8px; background-color: #444; color: #d4d4d4; border-radius: 3px; min-height: auto; width: auto; height: auto;}
         button.reset-scroll-btn:hover { background-color: #555; }
         
-        .checkbox-group { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; padding: 5px 10px; font-size: 12px; color: #ccc; }
+        /* チェックボックス群のデザイン */
+        .checkbox-group { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #ccc; }
         .checkbox-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; font-family: var(--vscode-font); }
-        .checkbox-group input { margin: 0; cursor: pointer; accent-color: #007acc; }
+        .checkbox-group input { margin: 0; cursor: pointer; accent-color: #007acc; width: 14px; height: 14px; }
 
         .input-wrapper { flex: 1; display: flex; flex-direction: column; }
         .output-wrapper { flex: 1; display: flex; flex-direction: column; } 
@@ -192,12 +196,11 @@
     </div>
 
     <script>
-        // 指定いただいた色味へ調整（5重と6重を更新）
         const bracketColors = [
             '#4ea8de', // 1重: 青系
             '#40c463', // 2重: 緑系
             '#d48844', // 3重: オレンジ系
-            '#ffee58', // 4重: レモンイエロー (より鮮やかに)
+            '#d4c428', // 4重: イエロー (明度を下げて落ち着いたマスタード系に)
             '#ff77cc', // 5重: ピンク (赤みを抑えて明るくマゼンタ寄りに)
             '#9999ff', // 6重: 青紫色 (明度を上げて見やすく)
             '#00ffff', // 7重: 非常に明るい水色（シアン）
