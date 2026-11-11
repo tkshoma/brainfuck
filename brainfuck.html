@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainfuck Tester</title>
+    <style>
+        /* VS Code風のフォントを定義 */
+        :root {
+            --vscode-font: Menlo, Monaco, Consolas, "Courier New", monospace;
+        }
+
+        body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #1e1e1e; color: #d4d4d4; height: 100vh; box-sizing: border-box; }
+        .container { display: flex; width: 100%; height: calc(100% - 40px); gap: 20px; }
+        .left-pane { flex: 1; display: flex; flex-direction: column; }
+        .right-pane { width: 110px; flex-shrink: 0; display: flex; flex-direction: column; background: #252526; padding: 15px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .editor-container { position: relative; background-color: #1e1e1e; border: 1px solid #444; border-radius: 4px; display: flex; flex-direction: column; }
+        .editor-container:focus-within { border-color: #007acc; }
+        #code-container { flex: 4; margin-bottom: 10px; }
+        
+        .highlight-layer, .code-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; font-family: var(--vscode-font); font-size: 18px; line-height: 1.5; margin: 0; border: none; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+        .highlight-layer { color: #d4d4d4; pointer-events: none; }
+        .code-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; resize: none; outline: none; }
+        
+        .sub-editor-container { flex: 1; }
+        .sub-editor-container .highlight-layer, 
+        .sub-editor-container .code-textarea { font-size: 18px; padding: 10px 15px; }
+        
+        #input-data { flex: 1; resize: none; padding: 10px 15px; font-family: var(--vscode-font); font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #444; border-radius: 4px; line-height: 1.5; box-sizing: border-box; width: 100%; margin: 0; }
+        #input-data:focus { outline: none; border-color: #007acc; }
+        
+        .middle-controls { display: flex; gap: 10px; flex: 1.5; margin-bottom: 15px; }
+        .middle-box { flex: 1; display: flex; flex-direction: column; transition: all 0.3s; }
+        
+        .hidden { display: none !important; }
+        
+        .bottom-controls { display: flex; gap: 10px; flex-shrink: 0; min-height: 180px; }
+        
+        .controls-column { flex: 1.2; display: flex; flex-direction: column; gap: 10px; }
+        
+        .sub-btn-group { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; flex: 1; }
+        .main-btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; flex: 1; }
+        
+        button { font-size: 16px; font-weight: bold; cursor: pointer; background-color: #007acc; color: white; border: none; border-radius: 4px; transition: background-color 0.2s; margin: 0; width: 100%; height: 100%; min-height: 45px; }
+        button:hover { background-color: #005f9e; }
+        
+        button.sub-btn { background-color: #0f8f62; font-size: 13px; padding: 0; white-space: nowrap; }
+        button.sub-btn:hover { background-color: #0b6b49; }
+        
+        button.init-btn { background-color: #b33939; }
+        button.init-btn:hover { background-color: #8b2c2c; }
+        button.norm-btn { background-color: #d48844; }
+        button.norm-btn:hover { background-color: #b36e32; }
+        
+        /* 初期位置ボタンをさらに小さくして1行に収める */
+        button.reset-scroll-btn { flex: none; font-size: 9px; font-weight: normal; padding: 2px 4px; background-color: #444; color: #d4d4d4; border-radius: 3px; min-height: auto; width: auto; height: auto; margin-left: auto; white-space: nowrap; }
+        button.reset-scroll-btn:hover { background-color: #555; }
+        
+        .checkbox-group { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #ccc; }
+        .checkbox-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; font-family: var(--vscode-font); }
+        .checkbox-group input { margin: 0; cursor: pointer; accent-color: #007acc; width: 14px; height: 14px; }
+
+        .input-wrapper { flex: 1; display: flex; flex-direction: column; }
+        .output-wrapper { flex: 1; display: flex; flex-direction: column; } 
+        
+        .pane-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+        .pane-header h3 { margin: 0; font-size: 16px; color: #bbb; }
+        h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; color: #bbb; }
+        .output-header h3 { font-size: 14px; }
+        
+        .stats { font-size: 12px; color: #888; font-family: var(--vscode-font); }
+        .output-area { font-family: var(--vscode-font); flex: 1; background: #1e1e1e; padding: 10px 15px; border: 1px solid #444; border-radius: 4px; font-size: 16px; white-space: pre-wrap; overflow-y: auto; word-break: break-all; margin: 0; }
+        
+        /* メモリ操作UI用のスタイル微調整 */
+        .memory-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .memory-header-top { display: flex; justify-content: space-between; align-items: center; gap: 2px; }
+        .memory-inputs { display: flex; gap: 5px; }
+        
+        .memory-inputs input[type="number"]::-webkit-outer-spin-button,
+        .memory-inputs input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .memory-inputs input[type="number"] { -moz-appearance: textfield; }
+        
+        /* 入力欄の文字サイズも縮小 */
+        .memory-inputs input { flex: 1; width: 0; background: #333; color: #d4d4d4; border: 1px solid #555; border-radius: 3px; font-family: var(--vscode-font); font-size: 11px; padding: 2px; text-align: center; }
+        .memory-inputs input:focus { outline: none; border-color: #007acc; }
+        
+        button.set-mem-btn { background-color: #d48844; font-size: 11px; min-height: 22px; padding: 2px 0; border-radius: 3px; }
+        button.set-mem-btn:hover { background-color: #b36e32; }
+
+        .memory-container { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; padding-right: 2px; position: relative; scroll-behavior: smooth; }
+        .memory-cell { width: 100%; min-height: 24px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; padding: 0 5px; border: 1px solid #555; background-color: #333; font-family: var(--vscode-font); border-radius: 2px; transition: background-color 0.3s; }
+        .memory-cell.active { background-color: #007acc; border-color: #00a8ff; color: white; }
+        .cell-index { color: #ccc; font-size: 10px; font-family: var(--vscode-font); }
+        .memory-cell.active .cell-index { color: #cce4f7; }
+        .cell-value { font-size: 14px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左側 -->
+        <div class="left-pane">
+            <div class="pane-header">
+                <h3>Code</h3>
+                <span id="code-stats" class="stats">Length: 0 | Pos: 0</span>
+            </div>
+            <div id="code-container" class="editor-container">
+                <div id="code-highlight" class="highlight-layer"></div>
+                <textarea id="code" class="code-textarea" spellcheck="false" placeholder="ここにメインのコードを書く..."></textarea>
+            </div>
+            
+            <div class="middle-controls">
+                <div class="middle-box" id="box-sub1">
+                    <h3>追加実行1</h3>
+                    <div id="sub-code1-container" class="editor-container sub-editor-container">
+                        <div id="sub-code1-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code1" class="code-textarea" spellcheck="false" placeholder="追加コード1..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box" id="box-sub2">
+                    <h3>追加実行2</h3>
+                    <div id="sub-code2-container" class="editor-container sub-editor-container">
+                        <div id="sub-code2-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code2" class="code-textarea" spellcheck="false" placeholder="追加コード2..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box" id="box-sub3">
+                    <h3>追加実行3</h3>
+                    <div id="sub-code3-container" class="editor-container sub-editor-container">
+                        <div id="sub-code3-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code3" class="code-textarea" spellcheck="false" placeholder="追加コード3..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub4">
+                    <h3>追加実行4</h3>
+                    <div id="sub-code4-container" class="editor-container sub-editor-container">
+                        <div id="sub-code4-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code4" class="code-textarea" spellcheck="false" placeholder="追加コード4..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub5">
+                    <h3>追加実行5</h3>
+                    <div id="sub-code5-container" class="editor-container sub-editor-container">
+                        <div id="sub-code5-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code5" class="code-textarea" spellcheck="false" placeholder="追加コード5..."></textarea>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub6">
+                    <h3>追加実行6</h3>
+                    <div id="sub-code6-container" class="editor-container sub-editor-container">
+                        <div id="sub-code6-highlight" class="highlight-layer"></div>
+                        <textarea id="sub-code6" class="code-textarea" spellcheck="false" placeholder="追加コード6..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-controls">
+                <div class="controls-column">
+                    <div class="sub-btn-group">
+                        <button class="sub-btn" onclick="runSub(1)">実行1</button>
+                        <button class="sub-btn" onclick="runSub(2)">実行2</button>
+                        <button class="sub-btn" onclick="runSub(3)">実行3</button>
+                        <button class="sub-btn" onclick="runSub(4)">実行4</button>
+                        <button class="sub-btn" onclick="runSub(5)">実行5</button>
+                        <button class="sub-btn" onclick="runSub(6)">実行6</button>
+                    </div>
+                    <div class="main-btn-group">
+                        <button onclick="runMain()">RUN</button>
+                        <button class="norm-btn" onclick="normalizeCode()">正規化</button>
+                        <button class="init-btn" onclick="resetEngine()">初期化</button>
+                    </div>
+                    <div class="checkbox-group">
+                        <span style="color: #888;">表示(最大3):</span>
+                        <label><input type="checkbox" id="chk-sub1" class="sub-chk" value="1" checked> 1</label>
+                        <label><input type="checkbox" id="chk-sub2" class="sub-chk" value="2" checked> 2</label>
+                        <label><input type="checkbox" id="chk-sub3" class="sub-chk" value="3" checked> 3</label>
+                        <label><input type="checkbox" id="chk-sub4" class="sub-chk" value="4"> 4</label>
+                        <label><input type="checkbox" id="chk-sub5" class="sub-chk" value="5"> 5</label>
+                        <label><input type="checkbox" id="chk-sub6" class="sub-chk" value="6"> 6</label>
+                    </div>
+                </div>
+                
+                <div class="input-wrapper">
+                    <div class="pane-header">
+                        <h3>Input</h3>
+                    </div>
+                    <textarea id="input-data" spellcheck="false" placeholder="入力データ..."></textarea>
+                </div>
+                
+                <div class="output-wrapper">
+                    <div class="pane-header output-header">
+                        <h3>Output</h3>
+                        <span id="exec-stats" class="stats">Ptr: 0 | Steps: 0</span>
+                    </div>
+                    <div id="output" class="output-area"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側 -->
+        <div class="right-pane">
+            <div class="memory-header">
+                <div class="memory-header-top">
+                    <!-- 文字サイズを11pxにして1行に収める -->
+                    <div style="font-size: 11px; color: #888; font-weight: bold; white-space: nowrap;">メモリ操作</div>
+                    <button class="reset-scroll-btn" onclick="resetMemoryScroll()">初期位置</button>
+                </div>
+                <div class="memory-inputs">
+                    <input type="number" id="manual-mem-addr" placeholder="要素" title="要素番号(アドレス)">
+                    <input type="number" id="manual-mem-val" placeholder="値" title="値 (0-255)">
+                </div>
+                <button class="set-mem-btn" onclick="setManualMemory()">SET</button>
+            </div>
+            <div id="memory" class="memory-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const bracketColors = [
+            '#4ea8de', // 1重: 青系
+            '#40c463', // 2重: 緑系
+            '#d48844', // 3重: オレンジ系
+            '#d4c428', // 4重: マスタードイエロー
+            '#ff77cc', // 5重: ピンク
+            '#9999ff', // 6重: 青紫色
+            '#00ffff', // 7重: 明るい水色
+            '#ffffff'  // 8重: 真っ白
+        ];
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function highlightBrackets(text, cursorPos = -1) {
+            const unmatched = new Set();
+            const stack = [];
+            for (let i = 0; i < text.length; i++) {
+                if (text[i] === '[') stack.push(i);
+                else if (text[i] === ']') {
+                    if (stack.length === 0) unmatched.add(i);
+                    else stack.pop();
+                }
+            }
+            for (let index of stack) unmatched.add(index);
+
+            let targetIdx = -1;
+            let matchIdx = -1;
+            
+            if (cursorPos > 0 && (text[cursorPos - 1] === '[' || text[cursorPos - 1] === ']')) {
+                targetIdx = cursorPos - 1;
+            }
+
+            if (targetIdx !== -1 && !unmatched.has(targetIdx)) {
+                let d = 0;
+                if (text[targetIdx] === '[') {
+                    for (let i = targetIdx; i < text.length; i++) {
+                        if (text[i] === '[') d++;
+                        else if (text[i] === ']') d--;
+                        if (d === 0) { matchIdx = i; break; }
+                    }
+                } else {
+                    for (let i = targetIdx; i >= 0; i--) {
+                        if (text[i] === ']') d++;
+                        else if (text[i] === '[') d--;
+                        if (d === 0) { matchIdx = i; break; }
+                    }
+                }
+            }
+
+            let result = '';
+            let depth = 0;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                
+                let isGlow = (i === targetIdx || i === matchIdx);
+                let glowCSS = isGlow ? ' outline: 1px solid rgba(255,255,255,0.4); background-color: rgba(255,255,255,0.1); border-radius: 2px;' : '';
+
+                if (char === '[') {
+                    if (unmatched.has(i)) result += `<span style="color: #ff4d4d; font-weight: bold; background-color: rgba(255,0,0,0.2);${glowCSS}">[</span>`;
+                    else {
+                        result += `<span style="color: ${bracketColors[depth % bracketColors.length]}; font-weight: bold;${glowCSS}">[</span>`;
+                        depth++;
+                    }
+                } else if (char === ']') {
+                    if (unmatched.has(i)) result += `<span style="color: #ff4d4d; font-weight: bold; background-color: rgba(255,0,0,0.2);${glowCSS}">]</span>`;
+                    else {
+                        depth = Math.max(0, depth - 1);
+                        result += `<span style="color: ${bracketColors[depth % bracketColors.length]}; font-weight: bold;${glowCSS}">]</span>`;
+                    }
+                } else if (char === '<' || char === '>') {
+                    result += `<span style="color: #00a8ff; font-weight: bold;">${escapeHtml(char)}</span>`;
+                } else {
+                    result += escapeHtml(char);
+                }
+            }
+            if (text.endsWith('\n')) result += ' ';
+            return result;
+        }
+
+        function updateCodeStats() {
+            const textarea = document.getElementById('code');
+            const stats = document.getElementById('code-stats');
+            if (textarea && stats) {
+                stats.innerText = `Length: ${textarea.value.length} | Pos: ${textarea.selectionStart}`;
+            }
+        }
+
+        function setupEditor(id) {
+            const textarea = document.getElementById(id);
+            const highlightDiv = document.getElementById(id + '-highlight');
+            
+            const update = () => {
+                highlightDiv.innerHTML = highlightBrackets(textarea.value, textarea.selectionStart);
+                if (id === 'code') updateCodeStats();
+            };
+
+            textarea.addEventListener('input', update);
+            textarea.addEventListener('keyup', update);
+            textarea.addEventListener('click', update);
+            textarea.addEventListener('focus', update);
+
+            textarea.addEventListener('scroll', () => {
+                highlightDiv.scrollTop = textarea.scrollTop;
+                highlightDiv.scrollLeft = textarea.scrollLeft;
+            });
+
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    const val = this.value;
+                    
+                    this.value = val.substring(0, start) + '    ' + val.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 4;
+                    update();
+                } else if (e.key === '[') {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    const val = this.value;
+                    
+                    this.value = val.substring(0, start) + '[]' + val.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 1;
+                    update();
+                }
+            });
+            
+            update(); 
+        }
+
+        function initCheckboxes() {
+            const checkboxes = document.querySelectorAll('.sub-chk');
+            checkboxes.forEach(chk => {
+                chk.addEventListener('change', function() {
+                    const checkedCount = document.querySelectorAll('.sub-chk:checked').length;
+                    
+                    if (checkedCount > 3) {
+                        alert('画面スペースの都合上、同時に表示できる追加実行枠は最大3つまでです。\n（※非表示にしても内容は保持されます）');
+                        this.checked = false;
+                        return;
+                    }
+                    updateVisibility();
+                });
+            });
+            updateVisibility();
+        }
+
+        function updateVisibility() {
+            for (let i = 1; i <= 6; i++) {
+                const chk = document.getElementById('chk-sub' + i);
+                const box = document.getElementById('box-sub' + i);
+                if (chk && box) {
+                    if (chk.checked) {
+                        box.classList.remove('hidden');
+                    } else {
+                        box.classList.add('hidden');
+                    }
+                }
+            }
+        }
+
+        let memory = {};
+        let ptr = 0;
+        let lastPtr = 0;
+        let inputPtr = 0;
+        let totalSteps = 0;
+
+        function getMem(p) { return memory[p] || 0; }
+        function setMem(p, v) { memory[p] = v & 255; }
+
+        function initMemoryDOM() {
+            const memoryDiv = document.getElementById('memory');
+            let htmlString = '';
+            for (let i = -100; i < 10000; i++) {
+                const activeClass = i === 0 ? ' active' : '';
+                htmlString += `
+                    <div id="cell-${i}" class="memory-cell${activeClass}">
+                        <span class="cell-index">[${i}]</span>
+                        <span class="cell-value">0</span>
+                    </div>`;
+            }
+            memoryDiv.innerHTML = htmlString;
+        }
+
+        function resetMemoryScroll() {
+            const memoryDiv = document.getElementById('memory');
+            const cellZero = document.getElementById('cell-0');
+            if (cellZero) memoryDiv.scrollTop = cellZero.offsetTop - 10;
+        }
+
+        function setManualMemory() {
+            let addrInput = document.getElementById('manual-mem-addr').value;
+            let valInput = document.getElementById('manual-mem-val').value;
+
+            if (addrInput === '' || valInput === '') return;
+
+            let addr = parseInt(addrInput, 10);
+            let val = parseInt(valInput, 10);
+
+            if (isNaN(addr) || isNaN(val)) return;
+
+            val = val & 255;
+            setMem(addr, val);
+
+            let cell = document.getElementById('cell-' + addr);
+            if (cell) {
+                cell.querySelector('.cell-value').innerText = val;
+                cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                let origBg = cell.style.backgroundColor;
+                cell.style.backgroundColor = '#d48844';
+                setTimeout(() => {
+                    cell.style.backgroundColor = origBg;
+                }, 300);
+            } else {
+                if(addr < -100 || addr >= 10000) {
+                    alert(`要素番号 ${addr} は画面の表示範囲(-100〜9999)外ですが、内部メモリにはセットされました。`);
+                }
+            }
+        }
+
+        function parseBrackets(code) {
+            let map = {};
+            let stack = [];
+            for (let i = 0; i < code.length; i++) {
+                if (code[i] === '[') stack.push(i);
+                else if (code[i] === ']') {
+                    if (stack.length === 0) throw new Error("構文エラー: 対応する '[' がありません");
+                    let start = stack.pop();
+                    map[start] = i;
+                    map[i] = start;
+                }
+            }
+            if (stack.length > 0) throw new Error("構文エラー: 対応する ']' がありません");
+            return map;
+        }
+
+        function executeBrainfuck(rawCode) {
+            let codeObjects = [];
+            for (let i = 0; i < rawCode.length; i++) {
+                if ("><+-.,[]".includes(rawCode[i])) {
+                    codeObjects.push({ cmd: rawCode[i], origIdx: i });
+                }
+            }
+
+            let codeStr = codeObjects.map(o => o.cmd).join('');
+            let jumpMap;
+            try {
+                jumpMap = parseBrackets(codeStr);
+            } catch (e) {
+                return "\n" + e.message;
+            }
+
+            let pc = 0;
+            let outputText = "";
+            let steps = 0;
+            const MAX_STEPS = 200000000; 
+            const inputData = document.getElementById('input-data').value + '\n';
+
+            while (pc < codeStr.length) {
+                if (steps++ > MAX_STEPS) {
+                    let origPos = codeObjects[pc] ? codeObjects[pc].origIdx + 1 : rawCode.length;
+                    outputText += `\n[Error] 実行ステップ数が2億回を超過したため強制終了しました。(Codeの純粋命令目: ${pc + 1}番目 / コメント含む全体: ${origPos}文字目)`;
+                    break;
+                }
+
+                if (ptr === 50000 || ptr === -50000) {
+                    let origPos = codeObjects[pc] ? codeObjects[pc].origIdx + 1 : rawCode.length;
+                    outputText += `\n[Error] ポインタが限界値(${ptr})に達したため安全のために強制終了しました。(Codeの純粋命令目: ${pc + 1}番目 / コメント含む全体: ${origPos}文字目)`;
+                    break;
+                }
+
+                let currentObj = codeObjects[pc];
+                let cmd = currentObj.cmd;
+
+                switch (cmd) {
+                    case '>': ptr++; break;
+                    case '<': ptr--; break;
+                    case '+': setMem(ptr, getMem(ptr) + 1); break;
+                    case '-': setMem(ptr, getMem(ptr) - 1); break;
+                    case '.': 
+                        outputText += String.fromCharCode(getMem(ptr)); 
+                        break;
+                    case ',':
+                        if (inputPtr < inputData.length) {
+                            setMem(ptr, inputData.charCodeAt(inputPtr++));
+                        } else {
+                            setMem(ptr, 255);
+                        }
+                        break;
+                    case '[':
+                        if (getMem(ptr) === 0) pc = jumpMap[pc];
+                        break;
+                    case ']':
+                        if (getMem(ptr) !== 0) pc = jumpMap[pc];
+                        break;
+                }
+                pc++;
+            }
+
+            totalSteps += steps;
+            return outputText;
+        }
+
+        function updateUI(newOutput, isAppend) {
+            const outDiv = document.getElementById('output');
+            if (isAppend) {
+                outDiv.innerText += newOutput;
+            } else {
+                outDiv.innerText = newOutput;
+            }
+            
+            document.getElementById('exec-stats').innerText = `Ptr: ${ptr} | Steps: ${totalSteps}`;
+
+            let oldCell = document.getElementById('cell-' + lastPtr);
+            if (oldCell) oldCell.classList.remove('active');
+
+            let newCell = document.getElementById('cell-' + ptr);
+            if (newCell) {
+                newCell.classList.add('active');
+                newCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            lastPtr = ptr;
+
+            for (let p in memory) {
+                let cell = document.getElementById('cell-' + p);
+                if (cell) {
+                    cell.querySelector('.cell-value').innerText = memory[p];
+                }
+            }
+        }
+
+        function resetEngine() {
+            memory = {};
+            ptr = 0;
+            inputPtr = 0;
+            totalSteps = 0;
+            
+            document.querySelectorAll('.cell-value').forEach(el => el.innerText = '0');
+            
+            let oldCell = document.getElementById('cell-' + lastPtr);
+            if (oldCell) oldCell.classList.remove('active');
+            
+            let zeroCell = document.getElementById('cell-0');
+            if (zeroCell) zeroCell.classList.add('active');
+            lastPtr = 0;
+
+            document.getElementById('output').innerText = '';
+            document.getElementById('exec-stats').innerText = `Ptr: 0 | Steps: 0`;
+            resetMemoryScroll();
+        }
+
+        function runMain() {
+            resetEngine();
+            let code = document.getElementById('code').value;
+            let output = executeBrainfuck(code);
+            updateUI(output, false);
+        }
+
+        function runSub(num) {
+            let code = document.getElementById('sub-code' + num).value;
+            let output = executeBrainfuck(code);
+            updateUI(output, true);
+        }
+
+        function normalizeCode() {
+            let rawCode = document.getElementById('code').value;
+            let pureCode = rawCode.replace(/[^><+\-.,\[\]]/g, '');
+            document.getElementById('output').innerText = pureCode;
+            document.getElementById('exec-stats').innerText = `正規化完了 (長さ: ${pureCode.length}文字)`;
+        }
+
+        window.onload = function() {
+            initMemoryDOM();
+            resetMemoryScroll();
+            setupEditor('code');
+            
+            for (let i = 1; i <= 6; i++) {
+                setupEditor('sub-code' + i);
+            }
+            
+            initCheckboxes();
+            updateCodeStats(); 
+        };
+    </script>
+</body>
+</html>
