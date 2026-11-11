@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainfuck Tester Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 上部仮想タブバー -->
+    <div class="top-navbar">
+        <div class="tab-group">
+            <button id="tab-btn-ide" class="tab-btn active" onclick="switchTab('ide')">IDE</button>
+            <button id="tab-btn-ascii" class="tab-btn" onclick="switchTab('ascii')">ASCII</button>
+            <button id="tab-btn-memo" class="tab-btn" onclick="switchTab('memo')">メモ</button>
+            <button id="tab-btn-settings" class="tab-btn" onclick="switchTab('settings')">設定</button>
+        </div>
+        <div class="top-right-status">
+            <span id="autosave-status" class="autosave-badge">✓ 自動保存済み</span>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         タブ1: メインIDE画面
+         ========================================== -->
+    <div id="view-ide" class="tab-view">
+        <!-- 左側ペイン -->
+        <div class="left-pane">
+            <div class="pane-header">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <h3>Code</h3>
+                    <!-- ステップ実行＆スロー再生コントロール -->
+                    <div class="header-debug-bar">
+                        <select id="debug-target" class="debug-target-select" onchange="stopDebugSession()" title="ステップ実行・スロー再生の対象">
+                            <option value="main">対象: メイン</option>
+                            <option value="sub1">対象: 追加1</option>
+                            <option value="sub2">対象: 追加2</option>
+                            <option value="sub3">対象: 追加3</option>
+                            <option value="sub4">対象: 追加4</option>
+                            <option value="sub5">対象: 追加5</option>
+                            <option value="sub6">対象: 追加6</option>
+                        </select>
+                        <button id="btn-slow-play" class="debug-btn play-btn" onclick="toggleSlowPlay()">▶ スロー再生</button>
+                        <button id="btn-step-fwd" class="debug-btn step-btn" onclick="stepForward()">⏭ 1ステップ</button>
+                        <button id="btn-step-back" class="debug-btn back-btn" onclick="stepBackward()" title="直前のステップに戻す">⏮ 1つ戻る</button>
+                        <button id="btn-debug-stop" class="debug-btn stop-btn" onclick="stopDebugSession()">⏹ 停止</button>
+                        <label class="inline-chk" style="font-size: 11px; color: #ccc;" title="コード内の / に到達した時点で一時停止します">
+                            <input type="checkbox" id="chk-stop-slash" checked onchange="saveStateToStorage()"> /で止まる
+                        </label>
+                        <div class="speed-control">
+                            <span>速度:</span>
+                            <input type="number" id="debug-speed" min="1" max="100000" value="30" oninput="updateSpeedLabel()" title="1秒あたりの実行ステップ数">
+                            <span>step/s</span>
+                        </div>
+                        <div id="debug-status" class="debug-status-text">待機中</div>
+                    </div>
+                </div>
+                <span id="code-stats" class="stats">Length: 0 | Pure: 0 | Pos: 0</span>
+            </div>
+
+            <!-- メインコードエディタ -->
+            <div id="code-container" class="editor-container">
+                <div class="editor-inner">
+                    <div id="code-highlight" class="highlight-layer"></div>
+                    <textarea id="code" class="code-textarea" spellcheck="false" placeholder="ここにメインのコードを書く... ([ キーで [] 自動補完 / / でブレークポイント / Ctrl+Z 対応)"></textarea>
+                </div>
+            </div>
+
+            <!-- 追加実行枠 1〜6 -->
+            <div class="middle-controls">
+                <div class="middle-box" id="box-sub1">
+                    <div class="sub-header">
+                        <h3>追加実行1</h3>
+                        <span id="sub-code1-stat" class="sub-pure-stat">Pure: 0</span>
+                    </div>
+                    <div id="sub-code1-container" class="editor-container sub-editor-container">
+                        <div class="editor-inner">
+                            <div id="sub-code1-highlight" class="highlight-layer"></div>
+                            <textarea id="sub-code1" class="code-textarea" spellcheck="false" placeholder="追加コード1..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="middle-box" id="box-sub2">
+                    <div class="sub-header">
+                        <h3>追加実行2</h3>
+                        <span id="sub-code2-stat" class="sub-pure-stat">Pure: 0</span>
+                    </div>
+                    <div id="sub-code2-container" class="editor-container sub-editor-container">
+                        <div class="editor-inner">
+                            <div id="sub-code2-highlight" class="highlight-layer"></div>
+                            <textarea id="sub-code2" class="code-textarea" spellcheck="false" placeholder="追加コード2..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="middle-box" id="box-sub3">
+                    <div class="sub-header">
+                        <h3>追加実行3</h3>
+                        <span id="sub-code3-stat" class="sub-pure-stat">Pure: 0</span>
+                    </div>
+                    <div id="sub-code3-container" class="editor-container sub-editor-container">
+                        <div class="editor-inner">
+                            <div id="sub-code3-highlight" class="highlight-layer"></div>
+                            <textarea id="sub-code3" class="code-textarea" spellcheck="false" placeholder="追加コード3..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub4">
+                    <div class="sub-header">
+                        <h3>追加実行4</h3>
+                        <span id="sub-code4-stat" class="sub-pure-stat">Pure: 0</span>
+                    </div>
+                    <div id="sub-code4-container" class="editor-container sub-editor-container">
+                        <div class="editor-inner">
+                            <div id="sub-code4-highlight" class="highlight-layer"></div>
+                            <textarea id="sub-code4" class="code-textarea" spellcheck="false" placeholder="追加コード4..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub5">
+                    <div class="sub-header">
+                        <h3>追加実行5</h3>
+                        <span id="sub-code5-stat" class="sub-pure-stat">Pure: 0</span>
+                    </div>
+                    <div id="sub-code5-container" class="editor-container sub-editor-container">
+                        <div class="editor-inner">
+                            <div id="sub-code5-highlight" class="highlight-layer"></div>
+                            <textarea id="sub-code5" class="code-textarea" spellcheck="false" placeholder="追加コード5..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="middle-box hidden" id="box-sub6">
+                    <div class="sub-header">
+                        <h3>追加実行6</h3>
+                        <span id="sub-code6-stat" class="sub-pure-stat">Pure: 0</span>
+                    </div>
+                    <div id="sub-code6-container" class="editor-container sub-editor-container">
+                        <div class="editor-inner">
+                            <div id="sub-code6-highlight" class="highlight-layer"></div>
+                            <textarea id="sub-code6" class="code-textarea" spellcheck="false" placeholder="追加コード6..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下部コントロール・Input・Output -->
+            <div class="bottom-controls">
+                <div class="controls-column">
+                    <div class="sub-btn-group">
+                        <button class="sub-btn" onclick="runSub(1)">実行1</button>
+                        <button class="sub-btn" onclick="runSub(2)">実行2</button>
+                        <button class="sub-btn" onclick="runSub(3)">実行3</button>
+                        <button class="sub-btn" onclick="runSub(4)">実行4</button>
+                        <button class="sub-btn" onclick="runSub(5)">実行5</button>
+                        <button class="sub-btn" onclick="runSub(6)">実行6</button>
+                    </div>
+                    <div class="main-btn-group">
+                        <button onclick="runMain()">RUN</button>
+                        <button class="init-btn" onclick="resetEngine()">初期化</button>
+                        <button class="norm-btn" onclick="normalizeCode()">正規化</button>
+                    </div>
+                    <div class="checkbox-group">
+                        <span style="color: #888;">表示(最大3):</span>
+                        <label><input type="checkbox" id="chk-sub1" class="sub-chk" value="1" checked> 1</label>
+                        <label><input type="checkbox" id="chk-sub2" class="sub-chk" value="2" checked> 2</label>
+                        <label><input type="checkbox" id="chk-sub3" class="sub-chk" value="3" checked> 3</label>
+                        <label><input type="checkbox" id="chk-sub4" class="sub-chk" value="4"> 4</label>
+                        <label><input type="checkbox" id="chk-sub5" class="sub-chk" value="5"> 5</label>
+                        <label><input type="checkbox" id="chk-sub6" class="sub-chk" value="6"> 6</label>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="pane-header">
+                        <h3>Input</h3>
+                        <label class="inline-chk" style="font-size: 11px; color: #ccc;" title="ONの場合、入力データの末尾に自動で改行(\n, ASCII 10)を追加します">
+                            <input type="checkbox" id="chk-input-newline" checked onchange="saveStateToStorage()"> 末尾に\nを付与
+                        </label>
+                    </div>
+                    <textarea id="input-data" spellcheck="false" placeholder="入力データ..." oninput="saveStateToStorage()"></textarea>
+                </div>
+
+                <div class="output-wrapper">
+                    <div class="pane-header output-header">
+                        <h3>Output</h3>
+                        <span id="exec-stats" class="stats">Ptr: 0 | Steps: 0</span>
+                    </div>
+                    <div id="output" class="output-area"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側ペイン（上部操作 → メモリ → ページ番号系 → セーブ系） -->
+        <div class="right-pane">
+            <div class="memory-header">
+                <div class="memory-header-top">
+                    <button class="reset-scroll-btn" onclick="resetMemoryScroll()" title="アドレス 0 の位置へ移動">初期位置</button>
+                    <button class="ptr-jump-btn" onclick="jumpToPointer()" title="現在のポインタ位置へ移動">Ptr位置</button>
+                </div>
+                <div class="memory-inputs">
+                    <input type="number" id="manual-mem-addr" placeholder="要素" title="要素番号(アドレス)">
+                    <input type="number" id="manual-mem-val" placeholder="値" title="値 (0-255)">
+                </div>
+                <button class="set-mem-btn" style="width: 100%;" onclick="setManualMemory()">SET</button>
+            </div>
+
+            <!-- 1. メモリ本体 -->
+            <div id="memory" class="memory-container"></div>
+
+            <!-- 2. ページ番号系 -->
+            <div class="memory-pagination">
+                <div class="page-nav-row">
+                    <button class="page-btn" onclick="changeMemoryPage(-1)" title="前のページ">◀</button>
+                    <span id="mem-page-label" class="page-label">-100〜100</span>
+                    <button class="page-btn" onclick="changeMemoryPage(1)" title="次のページ">▶</button>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #aaa; padding: 0 2px;">
+                    <span id="mem-page-num">P.1</span>
+                    <label class="inline-chk" title="ONの時のみポインタ移動時のメモリ追従と、スロー再生・ステップ実行中のCode自動スクロールを行います">
+                        <input type="checkbox" id="chk-mem-autofollow" checked onchange="saveStateToStorage()"> 追従
+                    </label>
+                </div>
+            </div>
+
+            <!-- 3. セーブ系 (3スロット) -->
+            <div class="mem-slots">
+                <div id="mem-slot-row-1" class="mem-slot-row">
+                    <span class="slot-label">M1</span>
+                    <button class="slot-btn save-btn" onclick="saveMemorySlot(1)" title="現在のメモリをスロット1にセーブ">Save</button>
+                    <button id="btn-load-slot-1" class="slot-btn load-btn" onclick="loadMemorySlot(1)" title="スロット1のメモリをロード">Load</button>
+                </div>
+                <div id="mem-slot-row-2" class="mem-slot-row">
+                    <span class="slot-label">M2</span>
+                    <button class="slot-btn save-btn" onclick="saveMemorySlot(2)" title="現在のメモリをスロット2にセーブ">Save</button>
+                    <button id="btn-load-slot-2" class="slot-btn load-btn" onclick="loadMemorySlot(2)" title="スロット2のメモリをロード">Load</button>
+                </div>
+                <div id="mem-slot-row-3" class="mem-slot-row">
+                    <span class="slot-label">M3</span>
+                    <button class="slot-btn save-btn" onclick="saveMemorySlot(3)" title="現在のメモリをスロット3にセーブ">Save</button>
+                    <button id="btn-load-slot-3" class="slot-btn load-btn" onclick="loadMemorySlot(3)" title="スロット3のメモリをロード">Load</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         タブ2: ASCII (左: ASCII一覧 / 右: 文字列 → ASCII)
+         ========================================== -->
+    <div id="view-ascii" class="tab-view hidden">
+        <div class="ascii-tab-container">
+            <div class="ascii-column">
+                <h3>ASCII一覧</h3>
+                <div id="ascii-table-grid" class="vertical-list"></div>
+            </div>
+
+            <div class="ascii-column">
+                <h3>文字列 → ASCII</h3>
+                <input type="text" id="ascii-inspector-input" class="ascii-input" placeholder="文字列を入力..." value="Hello!" oninput="updateAsciiInspector()">
+                <div id="ascii-breakdown" class="vertical-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         タブ3: メモ (自由記述メモ帳)
+         ========================================== -->
+    <div id="view-memo" class="tab-view hidden">
+        <div class="memo-tab-container">
+            <div class="pane-header">
+                <h3>メモ</h3>
+                <span id="memo-stats" class="stats">Length: 0 | Lines: 1</span>
+            </div>
+            <textarea id="memo-data" spellcheck="false" placeholder="自由にメモを書けます（各アドレスの役割、変数の設計、アルゴリズムの下書きなど。自動保存されます）"></textarea>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         タブ4: 設定 (文字サイズ / スクショ用ウィンドウ / 一括削除)
+         ========================================== -->
+    <div id="view-settings" class="tab-view hidden">
+        <div class="settings-container">
+
+            <!-- 1. 文字サイズ設定カード -->
+            <div class="settings-card">
+                <h3>文字サイズ設定</h3>
+                <p class="settings-desc">数値を入力して「適用」ボタンを押すと反映されます（範囲外の値は最小値10px〜最大値36pxに自動調整されます）。</p>
+
+                <div class="setting-row">
+                    <label for="setting-main-font">メイン Code の文字サイズ (10〜36)</label>
+                    <div class="setting-control">
+                        <input type="range" id="setting-main-font-range" min="10" max="36" value="17" oninput="document.getElementById('setting-main-font').value = this.value">
+                        <input type="number" id="setting-main-font" min="10" max="36" value="17">
+                        <span>px</span>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <label for="setting-sub-font">追加実行 1〜6 の文字サイズ (10〜36)</label>
+                    <div class="setting-control">
+                        <input type="range" id="setting-sub-font-range" min="10" max="36" value="15" oninput="document.getElementById('setting-sub-font').value = this.value">
+                        <input type="number" id="setting-sub-font" min="10" max="36" value="15">
+                        <span>px</span>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <label for="setting-io-font">Input / Output の文字サイズ (10〜36)</label>
+                    <div class="setting-control">
+                        <input type="range" id="setting-io-font-range" min="10" max="36" value="15" oninput="document.getElementById('setting-io-font').value = this.value">
+                        <input type="number" id="setting-io-font" min="10" max="36" value="15">
+                        <span>px</span>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <label for="setting-memo-font">メモ の文字サイズ (10〜36)</label>
+                    <div class="setting-control">
+                        <input type="range" id="setting-memo-font-range" min="10" max="36" value="15" oninput="document.getElementById('setting-memo-font').value = this.value">
+                        <input type="number" id="setting-memo-font" min="10" max="36" value="15">
+                        <span>px</span>
+                    </div>
+                </div>
+
+                <div class="setting-actions">
+                    <button class="secondary-btn" onclick="resetFontSizes()">デフォルトに戻す</button>
+                    <button class="primary-btn" onclick="applyFontSizeFromInputs()">適用</button>
+                </div>
+            </div>
+
+            <!-- 2. スクリーンショット用ビューア（別ウィンドウ表示） -->
+            <div class="settings-card">
+                <h3>スクリーンショット用 表示（別ウィンドウ）</h3>
+                <p class="settings-desc">CodeやOutputを読み取り専用（編集不可）で別ウィンドウに表示します。スクショ撮影に最適です。</p>
+
+                <div class="setting-row">
+                    <label for="screenshot-target">表示する対象</label>
+                    <select id="screenshot-target" class="settings-select">
+                        <option value="code">メイン Code</option>
+                        <option value="sub-code1">追加実行 1</option>
+                        <option value="sub-code2">追加実行 2</option>
+                        <option value="sub-code3">追加実行 3</option>
+                        <option value="sub-code4">追加実行 4</option>
+                        <option value="sub-code5">追加実行 5</option>
+                        <option value="sub-code6">追加実行 6</option>
+                        <option value="output">Output（出力結果）</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <label for="screenshot-mode">Codeの表示モード</label>
+                    <select id="screenshot-mode" class="settings-select">
+                        <option value="raw">そのまま表示（改行・コメント込み）</option>
+                        <option value="pure">純粋命令のみ抽出して表示</option>
+                    </select>
+                </div>
+
+                <div class="setting-actions">
+                    <button class="primary-btn" onclick="openScreenshotWindow()">別ウィンドウで表示</button>
+                </div>
+            </div>
+
+            <!-- 3. データ・コードの一括削除カード -->
+            <div class="settings-card danger-card">
+                <h3>コード・保存データの一括削除</h3>
+                <p class="settings-desc">新しいコードを書き始めるときに、自動保存されたコードやデータをまとめて消去できます。</p>
+
+                <div class="danger-btn-grid">
+                    <div class="danger-item">
+                        <div>
+                            <div class="danger-title">すべてのコードとInputを削除</div>
+                            <div class="danger-sub">メインCode・追加実行1〜6・Input・実行状態をすべて空にします（メモ・メモリセーブM1〜M3・設定は保持）。</div>
+                        </div>
+                        <button class="danger-btn" onclick="clearAllCodes()">全コード削除</button>
+                    </div>
+
+                    <div class="danger-item">
+                        <div>
+                            <div class="danger-title">メインCodeとInputのみ削除</div>
+                            <div class="danger-sub">追加実行1〜6やメモは残したまま、メインCodeとInputを空にします。</div>
+                        </div>
+                        <button class="warn-btn" onclick="clearMainCodeOnly()">メインのみ削除</button>
+                    </div>
+
+                    <div class="danger-item">
+                        <div>
+                            <div class="danger-title">追加実行1〜6のみすべて削除</div>
+                            <div class="danger-sub">メインCodeやメモは残したまま、追加実行1〜6のコードをすべて空にします。</div>
+                        </div>
+                        <button class="warn-btn" onclick="clearSubCodesOnly()">追加実行のみ削除</button>
+                    </div>
+
+                    <div class="danger-item">
+                        <div>
+                            <div class="danger-title">メモのみ削除</div>
+                            <div class="danger-sub">コードやメモリは残したまま、メモタブの内容だけを空にします。</div>
+                        </div>
+                        <button class="warn-btn" onclick="clearMemoOnly()">メモのみ削除</button>
+                    </div>
+
+                    <div class="danger-item">
+                        <div>
+                            <div class="danger-title">完全初期化（全データ消去）</div>
+                            <div class="danger-sub">すべてのコード・メモ・メモリセーブ(M1〜M3)・文字サイズ設定を含む全保存データを初期状態に戻します。</div>
+                        </div>
+                        <button class="danger-btn" onclick="factoryResetAll()">完全初期化</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- トースト通知エリア -->
+    <div id="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

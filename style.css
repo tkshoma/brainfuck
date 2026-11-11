@@ -1,0 +1,987 @@
+/* VS Code風のフォントとカラーテーマ定義 */
+:root {
+    --vscode-font: Menlo, Monaco, Consolas, "Courier New", monospace;
+    --bg-main: #1e1e1e;
+    --bg-panel: #252526;
+    --bg-header: #2d2d2d;
+    --border-color: #444444;
+    --accent-blue: #007acc;
+    --accent-green: #0f8f62;
+    --accent-orange: #d48844;
+    --accent-red: #b33939;
+    --accent-purple: #6c4ab6;
+    --text-main: #d4d4d4;
+    --text-muted: #888888;
+
+    /* 設定変更可能なフォントサイズ変数 */
+    --main-code-font-size: 17px;
+    --sub-code-font-size: 15px;
+    --io-font-size: 15px;
+    --memo-font-size: 15px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 12px 16px;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 上部ナビゲーションバー（仮想タブ＆自動保存ステータス） */
+.top-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.tab-group {
+    display: flex;
+    gap: 6px;
+}
+
+.tab-btn {
+    background-color: #2d2d2d;
+    color: #aaa;
+    border: 1px solid #3c3c3c;
+    border-bottom: none;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    width: auto;
+    height: auto;
+    min-height: unset;
+    transition: all 0.15s;
+}
+
+.tab-btn:hover {
+    background-color: #383838;
+    color: #fff;
+}
+
+.tab-btn.active {
+    background-color: var(--accent-blue);
+    color: #fff;
+    border-color: var(--accent-blue);
+}
+
+.top-right-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    font-family: var(--vscode-font);
+    color: var(--text-muted);
+}
+
+.autosave-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #252526;
+    border: 1px solid #3c3c3c;
+    color: #73c991;
+    transition: opacity 0.3s;
+}
+
+/* タブコンテンツ切り替え */
+.tab-view {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    gap: 14px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 左側ペイン（エディタ＆コントロール） */
+.left-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* 右側ペイン（ページ制メモリビューア） */
+.right-pane {
+    width: 126px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--bg-panel);
+    padding: 10px 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    min-height: 0;
+}
+
+/* ヘッダー共通 */
+.pane-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pane-header h3, h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #bbb;
+}
+
+.stats {
+    font-size: 12px;
+    color: #ffffff;
+    font-family: var(--vscode-font);
+    background: #252526;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid #3a3a3a;
+}
+
+/* エディタコンテナ */
+.editor-container {
+    position: relative;
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.editor-container:focus-within {
+    border-color: var(--accent-blue);
+}
+
+/* Code欄を少し狭く、追加実行枠を広く調整 */
+#code-container {
+    flex: 2.7;
+    margin-bottom: 8px;
+    min-height: 100px;
+}
+
+.editor-inner {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+}
+
+.highlight-layer, .code-textarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 12px 14px;
+    box-sizing: border-box;
+    font-family: var(--vscode-font);
+    font-size: var(--main-code-font-size);
+    line-height: 1.5;
+    margin: 0;
+    border: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.highlight-layer {
+    color: var(--text-main);
+    pointer-events: none;
+}
+
+.code-textarea {
+    background: transparent;
+    color: transparent;
+    caret-color: var(--text-main);
+    resize: none;
+    outline: none;
+}
+
+/* ステップ実行・スロー再生中の現在位置ハイライト */
+.exec-cursor {
+    background-color: #ffcc00 !important;
+    color: #000000 !important;
+    font-weight: bold;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(255, 204, 0, 0.9);
+    outline: 1px solid #fff;
+}
+
+/* ヘッダー内デバッグコントロールバー */
+.header-debug-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #252526;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    padding: 3px 8px;
+    flex-wrap: wrap;
+}
+
+.debug-btn {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 3px 8px;
+    min-height: 24px;
+    height: 24px;
+    width: auto;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.debug-btn.play-btn { background-color: #1f8ad2; }
+.debug-btn.play-btn.playing { background-color: #d48844; }
+.debug-btn.step-btn { background-color: #2ea043; }
+.debug-btn.back-btn { background-color: #4d5562; }
+.debug-btn.stop-btn { background-color: #8b3434; }
+
+.debug-target-select {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 2px 5px;
+    height: 24px;
+    font-size: 11px;
+    font-family: var(--vscode-font);
+}
+
+.speed-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-family: var(--vscode-font);
+    color: #ccc;
+}
+
+.speed-control input[type="number"] {
+    width: 56px;
+    height: 22px;
+    background: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-family: var(--vscode-font);
+    font-size: 11px;
+    text-align: right;
+    -moz-appearance: textfield;
+}
+
+.speed-control input[type="number"]::-webkit-outer-spin-button,
+.speed-control input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.speed-control input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.debug-status-text {
+    font-size: 11px;
+    font-family: var(--vscode-font);
+    color: #ffcc00;
+    white-space: nowrap;
+}
+
+/* 追加実行枠（広めに確保） */
+.middle-controls {
+    display: flex;
+    gap: 8px;
+    flex: 1.9;
+    margin-bottom: 8px;
+    min-height: 90px;
+}
+
+.middle-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.sub-header h3 {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.sub-pure-stat {
+    font-size: 10px;
+    color: #ffffff;
+    font-family: var(--vscode-font);
+}
+
+.sub-editor-container {
+    flex: 1;
+}
+
+.sub-editor-container .highlight-layer,
+.sub-editor-container .code-textarea {
+    font-size: var(--sub-code-font-size);
+    padding: 8px 10px;
+}
+
+/* 下部エリア（ボタン群・Input・Output） */
+.bottom-controls {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    height: 168px;
+}
+
+.controls-column {
+    flex: 1.25;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sub-btn-group {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    flex: 1;
+}
+
+.main-btn-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    flex: 1.1;
+}
+
+button {
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: var(--accent-blue);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.15s, transform 0.05s;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 36px;
+}
+
+button:hover { background-color: #005f9e; }
+button:active { transform: translateY(1px); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+button.sub-btn {
+    background-color: var(--accent-green);
+    font-size: 12px;
+    padding: 0;
+    white-space: nowrap;
+}
+button.sub-btn:hover { background-color: #0b6b49; }
+
+button.init-btn { background-color: var(--accent-red); }
+button.init-btn:hover { background-color: #8b2c2c; }
+button.norm-btn { background-color: var(--accent-orange); }
+button.norm-btn:hover { background-color: #b36e32; }
+
+.checkbox-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 12px;
+    color: #ccc;
+}
+
+.checkbox-group label, .inline-chk {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    font-family: var(--vscode-font);
+    user-select: none;
+}
+
+.checkbox-group input, .inline-chk input {
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--accent-blue);
+    width: 13px;
+    height: 13px;
+}
+
+.input-wrapper, .output-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+#input-data {
+    flex: 1;
+    resize: none;
+    padding: 8px 12px;
+    font-family: var(--vscode-font);
+    font-size: var(--io-font-size);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    line-height: 1.4;
+    width: 100%;
+    margin: 0;
+}
+
+#input-data:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.output-area {
+    font-family: var(--vscode-font);
+    flex: 1;
+    background: var(--bg-main);
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: var(--io-font-size);
+    white-space: pre-wrap;
+    overflow-y: auto;
+    word-break: break-all;
+    margin: 0;
+}
+
+/* ==========================================
+   右側ペイン：上部操作 → メモリ → ページ番号系 → セーブ系
+   ========================================== */
+.memory-header {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.memory-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+}
+
+button.reset-scroll-btn,
+button.ptr-jump-btn {
+    flex: 1;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 3px 4px;
+    border-radius: 3px;
+    min-height: 22px;
+    height: 22px;
+    white-space: nowrap;
+}
+
+button.reset-scroll-btn {
+    background-color: #444;
+    color: #d4d4d4;
+}
+button.reset-scroll-btn:hover { background-color: #555; }
+
+button.ptr-jump-btn {
+    background-color: #1f6f9f;
+    color: #ffffff;
+}
+button.ptr-jump-btn:hover { background-color: #007acc; }
+
+.memory-inputs {
+    display: flex;
+    gap: 4px;
+}
+
+.memory-inputs input[type="number"]::-webkit-outer-spin-button,
+.memory-inputs input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.memory-inputs input[type="number"] { -moz-appearance: textfield; }
+
+.memory-inputs input {
+    flex: 1;
+    width: 0;
+    background: #333;
+    color: #d4d4d4;
+    border: 1px solid #555;
+    border-radius: 3px;
+    font-family: var(--vscode-font);
+    font-size: 11px;
+    padding: 3px;
+    text-align: center;
+}
+.memory-inputs input:focus { outline: none; border-color: var(--accent-blue); }
+
+button.set-mem-btn {
+    background-color: var(--accent-orange);
+    font-size: 11px;
+    min-height: 22px;
+    height: 22px;
+    padding: 2px 8px;
+    width: auto;
+    border-radius: 3px;
+}
+button.set-mem-btn:hover { background-color: #b36e32; }
+
+/* 1. メモリコンテナ */
+.memory-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 2px;
+    position: relative;
+    min-height: 0;
+}
+
+.memory-cell {
+    width: 100%;
+    min-height: 23px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    border: 1px solid #444;
+    background-color: #2d2d2d;
+    font-family: var(--vscode-font);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.memory-cell:hover {
+    border-color: #777;
+}
+
+.memory-cell.active {
+    background-color: var(--accent-blue);
+    border-color: #00a8ff;
+    color: white;
+}
+
+.cell-index {
+    color: #bbb;
+    font-size: 11px;
+}
+.memory-cell.active .cell-index { color: #e0f2ff; }
+
+.cell-value {
+    font-size: 13px;
+    font-weight: bold;
+    text-align: right;
+}
+
+/* 2. メモリページ切り替えUI */
+.memory-pagination {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #1e1e1e;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid #3c3c3c;
+    flex-shrink: 0;
+}
+
+.page-nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+}
+
+.page-btn {
+    width: 20px;
+    height: 20px;
+    min-height: 20px;
+    padding: 0;
+    font-size: 10px;
+    background: #3a3d41;
+    border-radius: 3px;
+}
+.page-btn:hover { background: #505357; }
+
+.page-label {
+    font-family: var(--vscode-font);
+    font-size: 10px;
+    color: #9cdcfe;
+    text-align: center;
+    flex: 1;
+    white-space: nowrap;
+}
+
+/* 3. メモリ セーブ＆ロード (3スロット) */
+.mem-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: #1e1e1e;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid #3c3c3c;
+    flex-shrink: 0;
+}
+
+.mem-slot-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--vscode-font);
+    font-size: 10px;
+    color: #999;
+}
+
+.mem-slot-row.saved {
+    color: #73c991;
+}
+
+.slot-label {
+    width: 24px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.slot-btn {
+    flex: 1;
+    height: 20px;
+    min-height: 20px;
+    font-size: 10px;
+    padding: 0;
+    border-radius: 3px;
+    background: #333;
+    color: #ccc;
+    font-weight: bold;
+}
+.slot-btn:hover { background: #484848; color: #fff; }
+.slot-btn.save-btn { background: #2b4c65; color: #e0f2ff; }
+.slot-btn.save-btn:hover { background: #007acc; }
+.slot-btn.load-btn.active-slot { background: #1d5c42; color: #e6ffed; }
+.slot-btn.load-btn.active-slot:hover { background: #0f8f62; }
+
+/* ==========================================
+   仮想タブ2: ASCII (縦並びレイアウト)
+   ========================================== */
+.ascii-tab-container {
+    display: flex;
+    gap: 14px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.ascii-column {
+    flex: 1;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+}
+
+.ascii-input {
+    width: 100%;
+    background: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-family: var(--vscode-font);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+.ascii-input:focus { outline: none; border-color: var(--accent-blue); }
+
+.vertical-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-right: 4px;
+}
+
+.ascii-row {
+    display: flex;
+    align-items: center;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-family: var(--vscode-font);
+    font-size: 13px;
+    gap: 10px;
+}
+
+.ascii-row .r-idx { color: #888; font-size: 11px; width: 28px; }
+.ascii-row .r-chr { color: #ce9178; font-weight: bold; width: 52px; }
+#ascii-breakdown .ascii-row .r-chr { width: 28px; }
+.ascii-row .r-dec { color: #4fc1ff; font-weight: bold; width: 42px; }
+.ascii-row .r-diff { color: #b5cea8; width: 52px; }
+.ascii-row .r-hex { color: #888; font-size: 12px; width: 48px; }
+.ascii-row .r-desc { color: #777; font-size: 11px; margin-left: auto; }
+
+/* ==========================================
+   仮想タブ3: メモ (自由記述メモ帳)
+   ========================================== */
+.memo-tab-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+#memo-data {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    padding: 14px 16px;
+    font-family: var(--vscode-font);
+    font-size: var(--memo-font-size);
+    line-height: 1.55;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin: 0;
+}
+
+#memo-data:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+/* ==========================================
+   仮想タブ4: 設定 (Settings)
+   ========================================== */
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+    overflow-y: auto;
+    padding-right: 6px;
+    padding-bottom: 20px;
+}
+
+.settings-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.settings-card h3 {
+    font-size: 16px;
+    color: #fff;
+    border-bottom: 1px solid #383838;
+    padding-bottom: 8px;
+}
+
+.settings-desc {
+    margin: 0;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: #1e1e1e;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #333;
+}
+
+.setting-row label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #ddd;
+}
+
+.setting-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--vscode-font);
+    font-size: 13px;
+}
+
+.setting-control input[type="range"] {
+    width: 140px;
+    accent-color: var(--accent-blue);
+    cursor: pointer;
+}
+
+.setting-control input[type="number"] {
+    width: 64px;
+    background: #252526;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-family: var(--vscode-font);
+    font-size: 13px;
+    text-align: center;
+}
+
+.settings-select {
+    background: #252526;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: var(--vscode-font);
+    min-width: 240px;
+}
+
+.setting-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.primary-btn, .secondary-btn, .warn-btn, .danger-btn {
+    width: auto;
+    height: auto;
+    min-height: 34px;
+    padding: 6px 16px;
+    font-size: 13px;
+    border-radius: 5px;
+    white-space: nowrap;
+}
+
+.primary-btn { background-color: var(--accent-blue); }
+.primary-btn:hover { background-color: #005f9e; }
+
+.secondary-btn { background-color: #444; color: #ddd; }
+.secondary-btn:hover { background-color: #555; color: #fff; }
+
+.warn-btn { background-color: var(--accent-orange); }
+.warn-btn:hover { background-color: #b36e32; }
+
+.danger-btn { background-color: var(--accent-red); }
+.danger-btn:hover { background-color: #8b2c2c; }
+
+.danger-card {
+    border-color: #5a2e2e;
+}
+
+.danger-btn-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.danger-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: #1e1e1e;
+    border: 1px solid #3a2a2a;
+    padding: 10px 14px;
+    border-radius: 6px;
+}
+
+.danger-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #f0d0d0;
+    margin-bottom: 3px;
+}
+
+.danger-sub {
+    font-size: 11px;
+    color: #999;
+}
+
+/* トースト通知 */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.toast {
+    background: #252526;
+    color: #fff;
+    border-left: 4px solid var(--accent-blue);
+    padding: 10px 16px;
+    border-radius: 4px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    font-size: 13px;
+    max-width: 360px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.toast.warn { border-left-color: var(--accent-orange); }
